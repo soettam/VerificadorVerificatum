@@ -28,9 +28,25 @@ create_app(
 resources_dir = joinpath(app_dir, "resources")
 mkpath(resources_dir)
 
-function copytree(src, dest)
-    isdir(dest) && rm(dest; recursive = true, force = true)
-    cp(src, dest; force = true, recursive = true)
+function copytree(src::AbstractString, dest::AbstractString)
+    ispath(dest) && rm(dest; recursive = true, force = true)
+
+    if isdir(src)
+        for (root, _dirs, files) in walkdir(src)
+            rel = relpath(root, src)
+            target_root = rel == "." ? dest : joinpath(dest, rel)
+            mkpath(target_root)
+
+            for file in files
+                cp(joinpath(root, file), joinpath(target_root, file); force = true)
+            end
+        end
+    elseif isfile(src)
+        mkpath(dirname(dest))
+        cp(src, dest; force = true)
+    else
+        error("No existe la ruta origen $(src)")
+    end
 end
 
 mixnet_src = joinpath(project_root, "mixnet", "verificatum-vmn-3.1.0")
