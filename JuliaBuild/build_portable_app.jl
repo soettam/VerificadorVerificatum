@@ -6,11 +6,21 @@ project_root = normpath(joinpath(@__DIR__, ".."))
 Pkg.activate(project_root)
 Pkg.instantiate()
 
-Pkg.add("PackageCompiler")
 using PackageCompiler
 
 app_dir = joinpath(project_root, "dist", "VerificadorShuffleProofs")
-isdir(app_dir) && rm(app_dir; recursive = true, force = true)
+
+clean_requested = any(arg -> arg in ("--clean", "-c"), ARGS) || get(ENV, "SHUFFLEPROOFS_CLEAN", "0") == "1"
+has_previous_build = isdir(joinpath(app_dir, "bin"))
+incremental_build = has_previous_build && !clean_requested
+
+if clean_requested && isdir(app_dir)
+    println("[build] Limpiando build anterior en $app_dir")
+    rm(app_dir; recursive = true, force = true)
+    incremental_build = false
+end
+
+println("[build] Modo incremental: $(incremental_build)")
 
 precompile_script = joinpath(project_root, "JuliaBuild", "precompile_run.jl")
 
@@ -22,7 +32,8 @@ create_app(
     ],
     precompile_execution_file = precompile_script,
     include_lazy_artifacts = true,
-    force = true
+    force = true,
+    incremental = incremental_build
 )
 
 resources_dir = joinpath(app_dir, "resources")
