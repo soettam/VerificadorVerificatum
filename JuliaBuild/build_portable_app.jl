@@ -12,7 +12,7 @@ using PackageCompiler
 app_dir = joinpath(project_root, "dist", "VerificadorShuffleProofs")
 isdir(app_dir) && rm(app_dir; recursive = true, force = true)
 
-precompile_script = joinpath(project_root, "JuliaCodex", "precompile_run.jl")
+precompile_script = joinpath(project_root, "JuliaBuild", "precompile_run.jl")
 
 create_app(
     project_root,
