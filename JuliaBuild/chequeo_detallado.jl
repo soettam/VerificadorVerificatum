@@ -10,7 +10,7 @@ const VMNV_PATH = let path = Sys.which("vmnv")
     path === nothing ? normpath(joinpath(PROJECT_ROOT, "mixnet", "verificatum-vmn-3.1.0", "bin", "vmnv")) : path
 end
 
-const DEFAULT_DATASET = normpath(joinpath(PROJECT_ROOT, "test", "validation_sample", "verificatum", "P256"))
+const DEFAULT_DATASET = normpath(joinpath(PROJECT_ROOT, "test", "validation_sample", "verificatum", "onpe3"))
 
 function hexstring(bytes::AbstractVector{<:Unsigned})
     io = IOBuffer()

@@ -247,6 +247,6 @@
         "s₁,s₂,s₃,s₄": "Respuestas del probador asociadas a t₁..t₄.",
         "𝐡": "Base independiente derivada mediante el RO."
     },
-    "dataset": "/home/willy/VerificadorJulia/test/validation_sample/verificatum/onpe3"
+    "dataset": "/home/soettamusb/ShuffleProofs.jl-main/test/validation_sample/verificatum/onpe3"
 }
 

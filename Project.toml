@@ -7,6 +7,7 @@ version = "0.4.5"
 CryptoGroups = "bc997328-bedd-407e-bcd3-5758e064a52d"
 CryptoPRG = "d846c407-34c1-46cb-aa27-d51818cc05e2"
 CryptoUtils = "04afed74-ac16-11e9-37b6-1352e3e05830"
+PackageCompiler = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SigmaProofs = "f8559b4c-f045-44a2-8db2-503e40bb7416"
 
@@ -14,13 +15,14 @@ SigmaProofs = "f8559b4c-f045-44a2-8db2-503e40bb7416"
 CryptoGroups = "0.6"
 CryptoPRG = "0.2"
 CryptoUtils = "0.1.1"
+PackageCompiler = "2.2.2"
 SigmaProofs = "0.2.4"
 julia = "1"
 
 [extras]
+OpenSSLGroups = "50771dd1-78b8-490c-a786-5ddc80ce15da"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-OpenSSLGroups = "50771dd1-78b8-490c-a786-5ddc80ce15da"
 
 [targets]
 test = ["Test", "SafeTestsets", "OpenSSLGroups"]
