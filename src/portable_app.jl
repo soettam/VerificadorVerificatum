@@ -50,6 +50,7 @@ function resource_candidates()
 
     push!(candidates, normpath(joinpath(Sys.BINDIR, "..", "resources")))
     push!(candidates, normpath(joinpath(project_root(), "dist", "VerificadorShuffleProofs", "resources")))
+    push!(candidates, normpath(joinpath(project_root(), "distwindows", "VerificadorShuffleProofs", "resources")))
     push!(candidates, joinpath(project_root(), "resources"))
 
     unique(filter(isdir, candidates))

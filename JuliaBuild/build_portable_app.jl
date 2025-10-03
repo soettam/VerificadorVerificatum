@@ -8,7 +8,8 @@ Pkg.instantiate()
 
 using PackageCompiler
 
-app_dir = joinpath(project_root, "dist", "VerificadorShuffleProofs")
+dist_root = joinpath(project_root, Sys.iswindows() ? "distwindows" : "dist")
+app_dir = joinpath(dist_root, "VerificadorShuffleProofs")
 
 clean_requested = any(arg -> arg in ("--clean", "-c"), ARGS) || get(ENV, "SHUFFLEPROOFS_CLEAN", "0") == "1"
 has_previous_build = isdir(joinpath(app_dir, "bin"))
