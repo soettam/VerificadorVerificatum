@@ -2,6 +2,7 @@ module PortableApp
 import ..ShuffleProofs
 using JSON
 using Printf
+using Base: Cmd
 
 const DEFAULT_RESULT_FILENAME = "chequeo_detallado_result.json"
 
@@ -63,18 +64,57 @@ end
 
 function find_vmnv_path()
     if (path = Sys.which("vmnv")) !== nothing
-        return path
+        return Cmd([path])
     end
 
     for candidate_root in resource_candidates()
         candidate = joinpath(candidate_root, "verificatum-vmn-3.1.0", "bin", "vmnv")
-        isfile(candidate) && return candidate
+        isfile(candidate) && return Cmd([candidate])
     end
 
     candidate = joinpath(project_root(), "mixnet", "verificatum-vmn-3.1.0", "bin", "vmnv")
-    isfile(candidate) && return candidate
+    if isfile(candidate)
+        return Cmd([candidate])
+    end
+
+    if Sys.iswindows()
+        if (wsl = Sys.which("wsl")) !== nothing
+            try
+                vmnv_in_wsl = strip(read(`$wsl which vmnv`, String))
+                if !isempty(vmnv_in_wsl)
+                    return Cmd([wsl, "vmnv"])
+                end
+            catch err
+                err isa Base.ProcessFailedException || rethrow(err)
+            end
+        end
+    end
 
     nothing
+end
+
+function windows_to_wsl_path(path::AbstractString, wsl::AbstractString)
+    startswith(path, "/") && return path
+    try
+        cmd = Cmd([wsl, "wslpath", "-a", String(path)])
+        converted = strip(read(pipeline(cmd; stderr=devnull), String))
+        if !isempty(converted)
+            return converted
+        end
+    catch err
+        err isa Base.ProcessFailedException || rethrow(err)
+    end
+
+    drive, rest = Base.Filesystem.splitdrive(path)
+    if isempty(drive)
+        return replace(String(path), "\\" => "/")
+    end
+
+    drive_letter = lowercase(string(first(drive)))
+    cleaned = replace(rest, "\\" => "/")
+    cleaned = lstrip(cleaned, '/')
+    cleaned = isempty(cleaned) ? "" : "/" * cleaned
+    "/mnt/" * drive_letter * cleaned
 end
 
 function default_dataset_path()
@@ -87,18 +127,27 @@ function default_dataset_path()
     isdir(candidate) ? candidate : nothing
 end
 
-function run_vmnv_testvectors(dataset::AbstractString, vmnv_path::AbstractString)
+function run_vmnv_testvectors(dataset::AbstractString, vmnv_path)
+    vmnv_cmd = vmnv_path isa Cmd ? vmnv_path : Cmd([String(vmnv_path)])
     prot = joinpath(dataset, "protInfo.xml")
     nizkp = joinpath(dataset, "dir", "nizkp", "default")
 
     isfile(prot) || error("No se encontró protInfo.xml en $dataset")
     isdir(nizkp) || error("No se encontró directorio nizkp en $dataset")
 
-    cmd = `$vmnv_path -mix -t der.rho,bas.h $prot $nizkp`
+    prot_arg, nizkp_arg = prot, nizkp
+    if Sys.iswindows() && !isempty(vmnv_cmd.exec)
+        if (wsl = Sys.which("wsl")) !== nothing && lowercase(vmnv_cmd.exec[1]) == lowercase(wsl)
+            prot_arg = windows_to_wsl_path(prot, wsl)
+            nizkp_arg = windows_to_wsl_path(nizkp, wsl)
+        end
+    end
+
+    cmd = `$vmnv_cmd -mix -t der.rho,bas.h $prot_arg $nizkp_arg`
     read(cmd, String)
 end
 
-function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path::AbstractString) where {G}
+function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path) where {G}
     output = run_vmnv_testvectors(dataset, vmnv_path)
     lines = split(output, '\n')
 
@@ -276,7 +325,7 @@ function variable_definitions()
     )
 end
 
-function detailed_chequeo(dataset::AbstractString, vmnv_path::AbstractString)
+function detailed_chequeo(dataset::AbstractString, vmnv_path)
     isdir(dataset) || error("Dataset no existe: $dataset")
 
     sim = ShuffleProofs.load_verificatum_simulator(dataset)
