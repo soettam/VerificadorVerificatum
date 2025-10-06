@@ -1,3 +1,78 @@
+Chequeos Clave del Shuffle
+
+t₁ – Producto total constante: Confirma que, después de barajar, la multiplicación de todos los compromisos sigue dando el mismo resultado de antes. En una elección, significa que no apareció ni desapareció ningún voto durante el shuffle.
+
+t₂ – Punta de la cadena: Verifica que el último compromiso de la cadena coincide con lo que debería salir al aplicar la permutación. Evita que se “manipule” el final de la fila de votos.
+
+t₃ – Peso según el desafío: Comprueba que la permutación responde correctamente al desafío aleatorio generado en la prueba de conocimiento cero. Traducido: el mix-net demuestra que realmente usó la permutación correcta que prometió usar.
+
+t₄ – Reencriptado honesto: Garantiza que los votos barajados son los mismos que antes, sólo que re–encriptados con nueva aleatoriedad. Así se preserva el anonimato sin cambiar el contenido del voto.
+
+𝐭̂ – Consistencia paso a paso: Revisa cada enlace de la cadena de compromisos para asegurarse de que todo el barajado es coherente. Evita trampas localizadas entre dos votos consecutivos.
+
+Chequeos con las ecuaciones publicadas por Verificatum (A, B, C, D, F)
+(vmnv-3.1.0.pdf)
+
+A – Compromiso global: Un gran resumen que prueba que la permutación y las respuestas encajan. Da confianza de que el mix-net no trucó la permutación que comprometió.
+
+B – Cadena intermedia: Similar a 𝐭̂, vigila cada eslabón del shuffle para que ninguna parte de la permutación sea falsa.
+
+C – Producto acumulado: Comprueba otra vez que el producto de los compromisos no cambió, igual que t₁.
+
+D – Último eslabón: Chequea que la salida final concuerda con la base pública del sistema. Evita que se falsifique el resultado final del shuffle.
+
+F – Reencriptado en bloque: Revisa que el conjunto de votos reencriptados corresponde exactamente a los originales con nueva aleatoriedad. Asegura que nadie metió votos nuevos o adulteró los reales.
+
+Los cinco chequeos que en el código llamamos A, B, C, D y F están descritos explícitamente en la documentación de Verificatum:
+
+A – Se define al final del Paso 3 del Algorithm 19 (Proof of a Shuffle), Sección 8.3, pág. 16: allí se calcula (A = \prod_{i=0}^{N-1} u_i^{e_i}) y en el Paso 5 se comprueba (A^v \cdot A' = g^{k_A}).
+B – En el mismo Paso 5 (Algoritmo 19, pág. 16) aparecen las igualdades ((B_i)^v \cdot B_i' = g^{k_{B,i}} \cdot (\text{pred})^{k_{E,i}}), con el caso base usando (h_0) y los demás índices usando (B_{i-1}). Esa es la cadena que revaluamos para nuestro chequeo B.
+C – Se introduce justo antes en el Paso 5 (Algoritmo 19, pág. 16) como (C = \prod_{i=0}^{N-1} u_i) y se exige (C^v \cdot C' = g^{k_C}).
+D – En el mismo bloque del Paso 5 (pág. 16) se forma (D = B_{N-1} \cdot h_0^{\prod e_i}) y se verifica (D^v \cdot D' = g^{k_D}).
+F – También en el Paso 5 (pág. 16) se establece (F = \prod_{i=0}^{N-1} w_i^{e_i}) y se comprueba (F^v \cdot F' = \text{Enc}{pk}(1, -k_F) \cdot \prod_i (w_i')^{k{E,i}}).
+
+
+Archivos que se utilizan para la verficacion
+
+XML
+
+protInfo.xml: es el descriptor del protocolo (parámetros del grupo, auxsid, etc.). Se carga en load_verificatum_simulator para reconstruir el verificador (src/serializer.jl:294).
+
+dir/nizkp/default/Ciphertexts.bt: lista los ciphertexts originales del mix.
+dir/nizkp/default/ShuffledCiphertexts.bt: contiene los ciphertexts tras el shuffle.
+dir/nizkp/default/proofs/PermutationCommitment01.bt: compromiso de la permutación que Verificatum publica.
+dir/nizkp/default/proofs/PoSCommitment01.bt: compromisos intermedios de la prueba de shuffle.
+dir/nizkp/default/proofs/PoSReply01.bt: respuestas de la prueba (los “s” y “k” que acompañan al desafío).
+
+## RHo y bases
+
+Cuando se usa "vmn -mix o -decrypt" el archivo dir/nizkp/<auxsid>/type es "mixing" usar para extraer rho y bases:
+
+/usr/local/bin/vmnv -mix -t der.rho,bas.h /home/soettamusb/ShuffleProofs.jl-main/datasets/onpesinprecomp/protInfo.xml /home/soettamusb/ShuffleProofs.jl-main/datasets/onpesinprecomp/dir/nizkp/default
+
+Cuando se usa "vmn -shuffle" el archivo dir/nizkp/<auxsid>/type es "shuffling" usar para extraer rho y bases:
+
+/usr/local/bin/vmnv -shuffle -t der.rho,bas.h /home/soettamusb/ShuffleProofs.jl-main/datasets/onpesinprecomp/protInfo.xml /home/soettamusb/ShuffleProofs.jl-main/datasets/onpesinprecomp/dir/nizkp/default
+
+## Portable Application Build
+
+El proyecto incluye un script que empaqueta la aplicación con PackageCompiler. Ejecutalo desde la raíz del repositorio con Julia instalado:
+
+```bash
+julia JuliaBuild/build_portable_app.jl
+```
+
+- **Salida por plataforma**: en Linux los artefactos quedan en `dist/VerificadorShuffleProofs`; en Windows se generan en `distwindows/VerificadorShuffleProofs`. El ejecutable vive en `bin/verificador` (`verificador.exe` en Windows).
+- **Recompilaciones rápidas**: el script reutiliza builds previos de forma incremental. Para un rebuild limpio pasá `--clean` o exportá `SHUFFLEPROOFS_CLEAN=1` antes de ejecutar.
+- **Recursos opcionales**: si `mixnet/verificatum-vmn-3.1.0` o `test/validation_sample` existen en el repo se copian a `resources/`. El binario busca primero en esa carpeta y luego en la ruta definida por `SHUFFLEPROOFS_RESOURCES`.
+- **Aviso "No se encontró mixnet/..."**: sólo informa que no se empaquetó Verificatum; el ejecutable usará la instalación de `vmnv` del sistema o mostrará un error en tiempo de ejecución si tampoco está disponible.
+- **Dataset faltante al ejecutar**: llamá `verificador /ruta/al/dataset` con la carpeta Verificatum correspondiente o aprovechá el ejemplo en `resources/validation_sample` si está presente.
+
+Para distribuir en varias plataformas ejecutá el script en cada sistema operativo; PackageCompiler no realiza cross-compilation.
+
+## Para ejecutar prueba
+~/ShuffleProofs.jl-main/dist/VerificadorShuffleProofs/bin/verificador ~/ShuffleProofs.jl-main/datasets/onpesinprecomp
+
 # ShuffleProofs.jl
 
 [![codecov](https://codecov.io/gh/PeaceFounder/ShuffleProofs.jl/graph/badge.svg?token=4VCLLS1YEF)](https://codecov.io/gh/PeaceFounder/ShuffleProofs.jl)
@@ -152,21 +227,7 @@ verify(simulator)
 
 Verificatum compatibility is a key feature of ShuffleProofs.jl, allowing it to interoperate with one of the most widely deployed mix-net systems. This means proofs generated by Verificatum can be verified using this package and vice versa (in principle, if serialisation were to follow the directory structure of Verificatum specification). The implementation follows Verificatum's rigorous specification, ensuring complete compatibility.
 
-## Portable Application Build
 
-El proyecto incluye un script que empaqueta la aplicación con PackageCompiler. Ejecutalo desde la raíz del repositorio con Julia instalado:
-
-```bash
-julia JuliaBuild/build_portable_app.jl
-```
-
-- **Salida por plataforma**: en Linux los artefactos quedan en `dist/VerificadorShuffleProofs`; en Windows se generan en `distwindows/VerificadorShuffleProofs`. El ejecutable vive en `bin/verificador` (`verificador.exe` en Windows).
-- **Recompilaciones rápidas**: el script reutiliza builds previos de forma incremental. Para un rebuild limpio pasá `--clean` o exportá `SHUFFLEPROOFS_CLEAN=1` antes de ejecutar.
-- **Recursos opcionales**: si `mixnet/verificatum-vmn-3.1.0` o `test/validation_sample` existen en el repo se copian a `resources/`. El binario busca primero en esa carpeta y luego en la ruta definida por `SHUFFLEPROOFS_RESOURCES`.
-- **Aviso "No se encontró mixnet/..."**: sólo informa que no se empaquetó Verificatum; el ejecutable usará la instalación de `vmnv` del sistema o mostrará un error en tiempo de ejecución si tampoco está disponible.
-- **Dataset faltante al ejecutar**: llamá `verificador /ruta/al/dataset` con la carpeta Verificatum correspondiente o aprovechá el ejemplo en `resources/validation_sample` si está presente.
-
-Para distribuir en varias plataformas ejecutá el script en cada sistema operativo; PackageCompiler no realiza cross-compilation.
 
 ## Custom Verifiers
 

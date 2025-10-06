@@ -143,7 +143,7 @@ function run_vmnv_testvectors(dataset::AbstractString, vmnv_path)
         end
     end
 
-    cmd = `$vmnv_cmd -mix -t der.rho,bas.h $prot_arg $nizkp_arg`
+    cmd = `$vmnv_cmd -shuffle -t der.rho,bas.h $prot_arg $nizkp_arg`
     read(cmd, String)
 end
 

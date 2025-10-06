@@ -1,0 +1,202 @@
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251006 11:01:41 Starting hint server.
+251006 11:01:41 Starting http server.
+251006 11:01:41 Synchronizing with the other servers. Please wait.
+251006 11:01:41 Generate keys for secret communication.
+251006 11:01:41 | Generate and read plain keys.
+251006 11:01:41 | | Generate key-pair.
+251006 11:01:41 | | Exchange public keys with all parties.
+251006 11:01:41 | | | Publish public key.
+251006 11:01:41 | | Writing keys to file.
+251006 11:01:41 | Generate independent generator.
+251006 11:01:41 | | Execute Pedersen 1 times with rotating dealer.
+251006 11:01:41 | | | Deal a secret using Pedersen VSS.
+251006 11:01:41 | | | | Generate checking elements.
+251006 11:01:41 | | | | Compute encrypted shares for all parties.
+251006 11:01:41 | | | | Publish checking elements and encrypted shares.
+251006 11:01:41 | | | | Exchange verdicts.
+251006 11:01:41 | | | | | Publish verdict (true).
+251006 11:01:41 | | | | Sharing completed.
+251006 11:01:41 | | Write independent generator to file.
+251006 11:01:41 Generate distributed keys.
+251006 11:01:41 | Generate secret.
+251006 11:01:41 | Share secret and verify sharings of others.
+251006 11:01:41 | | Execute Pedersen 1 times with rotating dealer.
+251006 11:01:41 | | | Deal a secret using Pedersen VSS.
+251006 11:01:41 | | | | Generate checking elements.
+251006 11:01:41 | | | | Compute encrypted shares for all parties.
+251006 11:01:41 | | | | Publish checking elements and encrypted shares.
+251006 11:01:41 | | | | Exchange verdicts.
+251006 11:01:41 | | | | | Publish verdict (true).
+251006 11:01:41 | | | | Sharing completed.
+251006 11:01:41 Waiting for mutual shutdown acknowledgements.
+251006 11:01:41 | Publish acknowledgement.
+251006 11:01:41 | Publish acknowledgement.
+251006 11:01:41 Allow download of our acknowledgment for another 1 seconds.
+251006 11:01:42 Stopping hint server.
+251006 11:01:42 Stopping http server.
+-----------------------------------------------------------
+Completed key generation.
+
+Running time:                                          (ms)
+- Execution         0h  0m  1s                         1070
+- Network           0h  0m  0s                           18
+- Effective         0h  0m  1s                         1052
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  1s                         1052
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251006 11:01:43 Starting hint server.
+251006 11:01:43 Starting http server.
+251006 11:01:43 Synchronizing with the other servers. Please wait.
+251006 11:01:43 Generate keys for secret communication.
+251006 11:01:43 | Generate and read plain keys.
+251006 11:01:43 | | Read keys from file.
+251006 11:01:43 | Generate independent generator.
+251006 11:01:43 | | Read independent generator from file.
+251006 11:01:43 Perform pre-computation for 10 senders.
+251006 11:01:43 | Derive independent generators using RO.
+251006 11:01:43 | Write generators to file.
+251006 11:01:43 | Compute raised generators.
+251006 11:01:43 | Pre-compute permutation commitment.
+251006 11:01:43 | | Generate commitment exponents.
+251006 11:01:43 | | Write commitment exponents to file.
+251006 11:01:43 | | Compute identity commitment.
+251006 11:01:43 | | Write identity commitment to file.
+251006 11:01:43 | | Generate random permutation.
+251006 11:01:43 | | Write permutation to file.
+251006 11:01:43 | Generate permutation commitment of Party01.
+251006 11:01:43 | | Publish permutation commitment.
+251006 11:01:43 | | Prove correctness of permutation commitment.
+251006 11:01:43 | | | Generate batching vector.
+251006 11:01:43 | | | | Derive 256 bits using random oracle.
+251006 11:01:43 | | | Compute commitment.
+251006 11:01:44 | | | Publish our commitment.
+251006 11:01:44 | | | Generate challenge.
+251006 11:01:44 | | | | Derive 256 bits using random oracle.
+251006 11:01:44 | | | Compute reply.
+251006 11:01:44 | | | Publish reply.
+251006 11:01:44 | Generate reencryption exponents.
+251006 11:01:44 | Write reencryption exponents to file.
+251006 11:01:44 | Compute reencryption factors.
+251006 11:01:44 | Write reencryption factors to file.
+251006 11:01:44 Waiting for mutual shutdown acknowledgements.
+251006 11:01:44 | Publish acknowledgement.
+251006 11:01:44 | Publish acknowledgement.
+251006 11:01:44 Allow download of our acknowledgment for another 1 seconds.
+251006 11:01:45 Stopping hint server.
+251006 11:01:45 Stopping http server.
+-----------------------------------------------------------
+Completed pre-computation.
+
+Running time:                                          (ms)
+- Execution         0h  0m  2s                         2403
+- Network           0h  0m  0s                           16
+- Effective         0h  0m  2s                         2387
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  2s                         2387
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+Proof size:             3.8 KB                         3774
+
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251006 11:01:48 Starting hint server.
+251006 11:01:48 Starting http server.
+251006 11:01:48 Synchronizing with the other servers. Please wait.
+251006 11:01:48 Generate keys for secret communication.
+251006 11:01:48 | Generate and read plain keys.
+251006 11:01:48 | | Read keys from file.
+251006 11:01:48 | Generate independent generator.
+251006 11:01:48 | | Read independent generator from file.
+251006 11:01:48 Generate distributed keys.
+251006 11:01:48 | Read secret key and polynomial in exponent from file.
+251006 11:01:48 Perform pre-computation for 0 senders.
+251006 11:01:48 | Read generators.
+251006 11:01:48 | Read raised generators.
+251006 11:01:48 | Pre-compute permutation commitment.
+251006 11:01:48 | | Read permutation from file.
+251006 11:01:48 | | Read identity commitment from file.
+251006 11:01:48 | | Permute identity commitment.
+251006 11:01:48 | | Read commitment exponents from file.
+251006 11:01:48 | Generate permutation commitment of Party01.
+251006 11:01:48 | Read reencryption exponents.
+251006 11:01:48 | Read reencryption factors.
+251006 11:01:48 Shuffle 10 ciphertexts.
+251006 11:01:48 Shrink pre-computed values to 10 ciphertexts.
+251006 11:01:48 | Shrink number of generators.
+251006 11:01:48 | Shrink number of raised generators.
+251006 11:01:48 | Shrink reencryption exponents.
+251006 11:01:48 | Shrink reencryption factors.
+251006 11:01:48 | Shrink permutation commitment of Party01
+251006 11:01:48 | | Publish keep list.
+251006 11:01:48 | | Shrink commitment exponents.
+251006 11:01:48 | | Shrink permutation.
+251006 11:01:48 | | Shrink permutation commitment.
+251006 11:01:48 | Re-encrypt input list.
+251006 11:01:48 | Permute re-encrypted list.
+251006 11:01:48 | Publish output list.
+251006 11:01:48 | Prove correctness of shuffle.
+251006 11:01:48 | | Generate batching vector.
+251006 11:01:48 | | | Derive 256 bits using random oracle.
+251006 11:01:48 | | Compute commitment.
+251006 11:01:48 | | Publish our commitment.
+251006 11:01:48 | | Generate challenge.
+251006 11:01:48 | | | Derive 256 bits using random oracle.
+251006 11:01:48 | | Compute reply.
+251006 11:01:48 | | Publish reply.
+251006 11:01:48 Waiting for mutual shutdown acknowledgements.
+251006 11:01:48 | Publish acknowledgement.
+251006 11:01:48 | Publish acknowledgement.
+251006 11:01:48 Allow download of our acknowledgment for another 1 seconds.
+251006 11:01:49 Stopping hint server.
+251006 11:01:49 Stopping http server.
+-----------------------------------------------------------
+Completed shuffling.
+
+Running time:                                          (ms)
+- Execution         0h  0m  1s                         1177
+- Network           0h  0m  0s                           14
+- Effective         0h  0m  1s                         1163
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  1s                         1163
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+Proof size:             7.9 KB                         7864
+
