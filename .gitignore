@@ -5,3 +5,5 @@
 Manifest.toml
 # Evitar subir el workspace de verificación (repo anidado y binarios pesados)
 verification_workspace/
+# Artefactos de build/paquete
+dist/
