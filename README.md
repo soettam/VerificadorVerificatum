@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Índice
 ------
 
@@ -16,23 +15,14 @@
 - [Instalación local y dependencias](#instalaci%C3%B3n-local-y-dependencias)
 - [Performance y referencias](#performance-y-referencias)
 - [Referencias](#referencias)
-=======
-Índice
-------
 
-
->>>>>>> VerificadorJuliaBuild/master
 # Chequeos del verificador
 
 t₁ – Producto total constante: Confirma que, después de barajar, la multiplicación de todos los compromisos sigue dando el mismo resultado de antes. En una elección, significa que no apareció ni desapareció ningún voto durante el shuffle.
 
 t₂ – Punta de la cadena: Verifica que el último compromiso de la cadena coincide con lo que debería salir al aplicar la permutación. Evita que se “manipule” el final de la fila de votos.
 
-<<<<<<< HEAD
 t₃ – Peso según el desafío: Comprueba que la permutación responde correctamente al desafío aleatorio generado en la prueba de conocimiento cero. El mix-net demuestra que realmente usó la permutación correcta que prometió usar.
-=======
-t₃ – Peso según el desafío: Comprueba que la permutación responde correctamente al desafío aleatorio generado en la prueba de conocimiento cero. Traducido: el mix-net demuestra que realmente usó la permutación correcta que prometió usar.
->>>>>>> VerificadorJuliaBuild/master
 
 t₄ – Reencriptado honesto: Garantiza que los votos barajados son los mismos que antes, sólo que re–encriptados con nueva aleatoriedad. Así se preserva el anonimato sin cambiar el contenido del voto.
 
@@ -137,19 +127,7 @@ El proyecto incluye un script que empaqueta la aplicación con PackageCompiler. 
 julia JuliaBuild/build_portable_app.jl
 ```
 
-<<<<<<< HEAD
 Para distribuir en varias plataformas ejecutar el script en cada sistema operativo; PackageCompiler no realiza cross-compilation.
-=======
-Puntos clave:
-
-- Artefacto en Linux: `dist/VerificadorShuffleProofs` (ejecutable en `bin/verificador`).
-- Artefacto en Windows: `distwindows/VerificadorShuffleProofs` (ejecutable en `bin/verificador.exe`).
-- Para rebuild limpio: `julia JuliaBuild/build_portable_app.jl --clean` o exporte `SHUFFLEPROOFS_CLEAN=1`.
-- Recursos opcionales: si existe `mixnet/verificatum-vmn-3.1.0` o `test/validation_sample` se copian a `resources/`.
-- Si PackageCompiler falla por dependencias faltantes (p. ej. `JSON`), agréguese la dependencia en `Project.toml` o instálela manualmente antes de empaquetar.
-
-Para distribuir en varias plataformas ejecutá el script en cada sistema operativo; PackageCompiler no realiza cross-compilation.
->>>>>>> VerificadorJuliaBuild/master
 
 ## Para ejecutar prueba
 Ejemplo de uso del binario empaquetado:
