@@ -1,0 +1,15 @@
+{
+  "folders": [
+    { "path": "." },
+    { "path": "verification_workspace" }
+  ],
+  "settings": {
+    "git.autoRepositoryDetection": "subFolders",
+    "git.repositoryScanIgnoredFolders": [
+      "verification_workspace"
+    ],
+    "scm.alwaysShowProviders": true,
+    "git.openRepositoryInParentFolders": "always",
+    "git.defaultRemote": "VerificadorJuliaBuild"
+  }
+}
