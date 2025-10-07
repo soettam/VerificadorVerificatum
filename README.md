@@ -1,14 +1,27 @@
-Índice
+# Índice
 ------
 
-
+- [Chequeos del verificador](#chequeos-del-verificador)
+- [Correspondencia con la documnetacion de Verificatum: A, B, C, D, F](#correspondencia-con-la-documnetacion-de-verificatum-a-b-c-d-f)
+    - [Chequeo A (compromiso ponderado por el desafío)](#chequeo-a-compromiso-ponderado-por-el-desaf%C3%ADo)
+    - [Chequeo B (cadena intermedia)](#chequeo-b-cadena-intermedia)
+    - [Chequeo C (producto acumulado)](#chequeo-c-producto-acumulado)
+    - [Chequeo D (último eslabón)](#chequeo-d-%C3%BAltimo-eslab%C3%B3n)
+    - [Chequeo F (reencriptado en bloque)](#chequeo-f-reencriptado-en-bloque)
+- [Archivos usados para la verificación](#archivos-usados-para-la-verificaci%C3%B3n)
+- [Extraer rho y bases con vmnv](#extraer-rho-y-bases-con-vmnv)
+- [Construcción portable (PackageCompiler)](#construcci%C3%B3n-portable-packagecompiler)
+- [Para ejecutar prueba](#para-ejecutar-prueba)
+- [Instalación local y dependencias](#instalaci%C3%B3n-local-y-dependencias)
+- [Performance y referencias](#performance-y-referencias)
+- [Referencias](#referencias)
 # Chequeos del verificador
 
 t₁ – Producto total constante: Confirma que, después de barajar, la multiplicación de todos los compromisos sigue dando el mismo resultado de antes. En una elección, significa que no apareció ni desapareció ningún voto durante el shuffle.
 
 t₂ – Punta de la cadena: Verifica que el último compromiso de la cadena coincide con lo que debería salir al aplicar la permutación. Evita que se “manipule” el final de la fila de votos.
 
-t₃ – Peso según el desafío: Comprueba que la permutación responde correctamente al desafío aleatorio generado en la prueba de conocimiento cero. Traducido: el mix-net demuestra que realmente usó la permutación correcta que prometió usar.
+t₃ – Peso según el desafío: Comprueba que la permutación responde correctamente al desafío aleatorio generado en la prueba de conocimiento cero. El mix-net demuestra que realmente usó la permutación correcta que prometió usar.
 
 t₄ – Reencriptado honesto: Garantiza que los votos barajados son los mismos que antes, sólo que re–encriptados con nueva aleatoriedad. Así se preserva el anonimato sin cambiar el contenido del voto.
 
@@ -113,15 +126,7 @@ El proyecto incluye un script que empaqueta la aplicación con PackageCompiler. 
 julia JuliaBuild/build_portable_app.jl
 ```
 
-Puntos clave:
-
-- Artefacto en Linux: `dist/VerificadorShuffleProofs` (ejecutable en `bin/verificador`).
-- Artefacto en Windows: `distwindows/VerificadorShuffleProofs` (ejecutable en `bin/verificador.exe`).
-- Para rebuild limpio: `julia JuliaBuild/build_portable_app.jl --clean` o exporte `SHUFFLEPROOFS_CLEAN=1`.
-- Recursos opcionales: si existe `mixnet/verificatum-vmn-3.1.0` o `test/validation_sample` se copian a `resources/`.
-- Si PackageCompiler falla por dependencias faltantes (p. ej. `JSON`), agréguese la dependencia en `Project.toml` o instálela manualmente antes de empaquetar.
-
-Para distribuir en varias plataformas ejecutá el script en cada sistema operativo; PackageCompiler no realiza cross-compilation.
+Para distribuir en varias plataformas ejecutar el script en cada sistema operativo; PackageCompiler no realiza cross-compilation.
 
 ## Para ejecutar prueba
 Ejemplo de uso del binario empaquetado:

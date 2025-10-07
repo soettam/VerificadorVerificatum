@@ -3,3 +3,5 @@
 **/\#*\#
 **/.DS_Store
 Manifest.toml
+# Evitar subir el workspace de verificación (repo anidado y binarios pesados)
+verification_workspace/
