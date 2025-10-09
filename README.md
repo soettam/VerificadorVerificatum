@@ -133,7 +133,7 @@ Para distribuir en varias plataformas ejecutar el script en cada sistema operati
 Ejemplo de uso del binario empaquetado:
 
 ```bash
-./dist/VerificadorShuffleProofs/bin/verificador ./datasets/onpesinprecomp
+./dist/VerificadorShuffleProofs/bin/verificador ./datasets/onpesinprecomp -mix
 ```
 
 ## Instalación local y dependencias
@@ -171,3 +171,4 @@ Notas importantes:
 - Wikström — Verificatum Mix-Net papers
 - Haenni et al. — Pseudocode for Verifiable Re-Encryption Mix-Nets
 - https://verificatum.org
+- El proyecto original se encuentra en https://github.com/PeaceFounder/ShuffleProofs.jl 
