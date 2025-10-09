@@ -127,7 +127,7 @@ function default_dataset_path()
     isdir(candidate) ? candidate : nothing
 end
 
-function run_vmnv_testvectors(dataset::AbstractString, vmnv_path)
+function run_vmnv_testvectors(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle")
     vmnv_cmd = vmnv_path isa Cmd ? vmnv_path : Cmd([String(vmnv_path)])
     prot = joinpath(dataset, "protInfo.xml")
     nizkp = joinpath(dataset, "dir", "nizkp", "default")
@@ -136,6 +136,14 @@ function run_vmnv_testvectors(dataset::AbstractString, vmnv_path)
     isdir(nizkp) || error("No se encontró directorio nizkp en $dataset")
 
     prot_arg, nizkp_arg = prot, nizkp
+
+    # Normalizar y validar el modo
+    normalized_mode = lowercase(strip(mode))
+    if normalized_mode == "shuffle"; normalized_mode = "-shuffle"; end
+    if normalized_mode == "mix"; normalized_mode = "-mix"; end
+    if normalized_mode != "-shuffle" && normalized_mode != "-mix"
+        error("Modo inválido: '" * mode * "'. Use '-shuffle' o '-mix'.")
+    end
     if Sys.iswindows() && !isempty(vmnv_cmd.exec)
         if (wsl = Sys.which("wsl")) !== nothing && lowercase(vmnv_cmd.exec[1]) == lowercase(wsl)
             prot_arg = windows_to_wsl_path(prot, wsl)
@@ -143,12 +151,12 @@ function run_vmnv_testvectors(dataset::AbstractString, vmnv_path)
         end
     end
 
-    cmd = `$vmnv_cmd -shuffle -t der.rho,bas.h $prot_arg $nizkp_arg`
+    cmd = `$vmnv_cmd $normalized_mode -t der.rho,bas.h $prot_arg $nizkp_arg`
     read(cmd, String)
 end
 
-function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path) where {G}
-    output = run_vmnv_testvectors(dataset, vmnv_path)
+function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path; mode::AbstractString = "-shuffle") where {G}
+    output = run_vmnv_testvectors(dataset, vmnv_path; mode)
     lines = split(output, '\n')
 
     rho_hex = nothing
@@ -325,7 +333,7 @@ function variable_definitions()
     )
 end
 
-function detailed_chequeo(dataset::AbstractString, vmnv_path)
+function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle")
     isdir(dataset) || error("Dataset no existe: $dataset")
 
     sim = ShuffleProofs.load_verificatum_simulator(dataset)
@@ -334,7 +342,7 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path)
     proof = ShuffleProofs.PoSProof(vproof)
     verifier = sim.verifier
 
-    testvectors = obtain_testvectors(dataset, typeof(proposition.g), vmnv_path)
+    testvectors = obtain_testvectors(dataset, typeof(proposition.g), vmnv_path; mode)
     ρ = testvectors.ρ
     generators = testvectors.generators
 
@@ -361,7 +369,8 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path)
         "parameters" => Dict(
             "rho_hex" => hexstring(ρ),
             "seed_hex" => hexstring(seed),
-            "generators" => string.(generators)
+            "generators" => string.(generators),
+            "vmnv_mode" => mode
         ),
         "challenges" => Dict(
             "perm_vector" => map(string, perm_u),
@@ -430,6 +439,8 @@ end
 
 function cli_run(args::Vector{String})::Cint
     dataset_arg = isempty(args) ? nothing : first(args)
+    # Segundo parámetro opcional: modo ('-shuffle' o '-mix')
+    mode_arg = length(args) >= 2 ? args[2] : "-shuffle"
     dataset_path = isnothing(dataset_arg) ? default_dataset_path() : normpath(abspath(dataset_arg))
 
     if dataset_path === nothing
@@ -443,7 +454,18 @@ function cli_run(args::Vector{String})::Cint
         return 1
     end
 
-    result = detailed_chequeo(dataset_path, vmnv_path)
+    # Validación básica del modo para dar feedback temprano en CLI
+    begin
+        nm = lowercase(strip(mode_arg))
+        if nm == "shuffle"; mode_arg = "-shuffle"; end
+        if nm == "mix"; mode_arg = "-mix"; end
+        if mode_arg != "-shuffle" && mode_arg != "-mix"
+            println(stderr, "Modo inválido: '" * args[2] * "'. Use '-shuffle' o '-mix'.")
+            return 2
+        end
+    end
+
+    result = detailed_chequeo(dataset_path, vmnv_path; mode = mode_arg)
 
     println("Dataset: ", result["dataset"])
     println("ρ (hex): ", result["parameters"]["rho_hex"])
@@ -462,6 +484,7 @@ function cli_run(args::Vector{String})::Cint
         println("  u[$i] = ", u)
     end
     println("Reencryption challenge (c): ", result["challenges"]["reenc"])
+    println("vmnv mode: ", result["parameters"]["vmnv_mode"])
 
     println("\nChequeos de nivel shuffle:")
     print_checks(result["checks"]["shuffle"])
