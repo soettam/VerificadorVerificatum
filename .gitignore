@@ -2,12 +2,9 @@
 **/*.bak
 **/\#*\#
 **/.DS_Store
-<<<<<<< HEAD
 Manifest.toml
 # Evitar subir el workspace de verificación (repo anidado y binarios pesados)
 verification_workspace/
 # Artefactos de build/paquete
 dist/
-=======
-Manifest.toml
->>>>>>> VerificadorJuliaBuild/master
+distwindows/
