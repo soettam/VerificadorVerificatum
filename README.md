@@ -166,9 +166,27 @@ Notas importantes:
 - Recursos opcionales: si existen `mixnet/verificatum-vmn-3.1.0` o `test/validation_sample` en el repo, se copian a `resources/` y el ejecutable los puede usar.
 - Aviso "No se encontró mixnet/...": indica que no se empaquetó Verificatum; el ejecutable intentará usar `vmnv` instalado en el sistema si no hay recursos incluidos.
 
+# Sobre el verificador
+
+El verificador está implementado en Julia, un lenguaje de programación de alto rendimiento que utiliza el compilador LLVM para generar código nativo.
+Esto le permite alcanzar una velocidad comparable a la de C/C++, manteniendo al mismo tiempo una sintaxis moderna, expresiva y más cercana a lenguajes como Python o MATLAB.
+
+Julia combina lo mejor de dos mundos: la interactividad del REPL (útil para depuración o auditorías manuales) y la eficiencia de compilación estática.
+Además, su ecosistema científico facilita el manejo de estructuras algebraicas, curvas elípticas y pruebas criptográficas.
+
+Referencia del proyecto original
+El código fuente del verificador se basa en el proyecto ShuffleProofs.jl, desarrollado en el marco de PeaceFounder, disponible en el siguiente enlace:
+
+https://github.com/PeaceFounder/ShuffleProofs.jl
+
+Este proyecto implementa protocolos de verificación para mixnets verificados públicamente, permitiendo auditar matemáticamente las permutaciones y reencriptaciones sin revelar el vínculo entre votantes y votos, garantizando así anonimato verificable.
+
 # Referencias:
 
 - Wikström — Verificatum Mix-Net papers
 - Haenni et al. — Pseudocode for Verifiable Re-Encryption Mix-Nets
 - https://verificatum.org
 - El proyecto original se encuentra en https://github.com/PeaceFounder/ShuffleProofs.jl 
+
+
+

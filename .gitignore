@@ -8,3 +8,4 @@ verification_workspace/
 # Artefactos de build/paquete
 dist/
 distwindows/
+*.mp3
