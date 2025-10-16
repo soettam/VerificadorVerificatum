@@ -1,9 +1,7 @@
 {
   "git.autoRepositoryDetection": "subFolders",
-  "git.repositoryScanIgnoredFolders": [
-    "verification_workspace"
-  ],
   "scm.alwaysShowProviders": true,
   "git.openRepositoryInParentFolders": "always",
-  "git.defaultRemote": "github"
+  "git.defaultRemote": "github",
+  "git.detectSubmodules": true
 }
