@@ -152,31 +152,104 @@ function run_vmnv_testvectors(dataset::AbstractString, vmnv_path; mode::Abstract
     end
 
     cmd = `$vmnv_cmd $normalized_mode -t der.rho,bas.h $prot_arg $nizkp_arg`
-    read(cmd, String)
+    # Capture both stdout and stderr: run the command and capture stderr into a buffer
+    buf = IOBuffer()
+    run(pipeline(cmd, stdout=buf, stderr=buf))
+    output = String(take!(buf))
+    output
 end
 
 function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path; mode::AbstractString = "-shuffle") where {G}
     output = run_vmnv_testvectors(dataset, vmnv_path; mode)
+    # Eliminar secuencias ANSI que puedan aparecer en la salida del VM
+    output = replace(output, r"\x1B\[[0-?]*[ -/]*[@-~]" => "")
     lines = split(output, '\n')
 
     rho_hex = nothing
     bas_payload = nothing
 
-    for (idx, line) in enumerate(lines)
+    # Buscador robusto: cuando encontramos la etiqueta "der.rho" tomamos la
+    # siguiente línea no vacía que contenga sólo hex. Para bas.h recogemos
+    # varias líneas a partir de la siguiente hasta encontrar un separador
+    # (línea vacía) o una nueva etiqueta.
+    i = 1
+    while i <= length(lines)
+        line = lines[i]
         if occursin("der.rho", line)
-            if idx < length(lines)
-                candidate = strip(lines[idx + 1])
-                rho_hex = isempty(candidate) ? rho_hex : candidate
+            # intentar extraer hex en la misma línea primero
+            m = match(r"([0-9a-fA-F]{16,})", line)
+            if m !== nothing
+                rho_hex = m.captures[1]
+            else
+                # buscar la siguiente línea no vacía que contenga hex
+                j = i + 1
+                while j <= length(lines)
+                    candidate = strip(lines[j])
+                    # aceptar también tokens separados por espacios (unirlos)
+                    token = replace(candidate, r"\s+" => "")
+                    if !isempty(token) && occursin(r"^[0-9a-fA-F]+$", token)
+                        rho_hex = token
+                        break
+                    end
+                    j += 1
+                end
             end
+            i = i + 1
+            continue
         elseif occursin("bas.h", line)
-            if idx < length(lines)
-                bas_payload = strip(lines[idx + 1])
+            # recolectar payload para bas.h: todas las líneas no vacías
+            # hasta una línea vacía o una nueva etiqueta que contenga '.' o '-'
+            j = i + 1
+            parts = String[]
+            while j <= length(lines)
+                candidate = lines[j]
+                s = strip(replace(candidate, r"\x1B\[[0-?]*[ -/]*[@-~]" => ""))
+                if isempty(s)
+                    break
+                end
+                # detener si aparece otra etiqueta de tipo "der.rho" o "TEST VECTOR" o nueva bas.h
+                if occursin("der.rho", s) || occursin("TEST VECTOR", s) || occursin("bas.h", s)
+                    break
+                end
+                push!(parts, s)
+                j += 1
             end
+            bas_payload = join(parts, " ")
+            i = j
+            continue
         end
+        i += 1
     end
 
-    isnothing(rho_hex) && error("No se pudo extraer der.rho del resultado de vmnv")
-    isnothing(bas_payload) && error("No se pudo extraer bas.h del resultado de vmnv")
+    if isnothing(rho_hex)
+        # Guardar volcado crudo para depuración
+        logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
+        try
+            mkpath(logdir)
+            logfile = joinpath(logdir, "vmnv_raw_output_global.log")
+            open(logfile, "w") do io
+                write(io, output)
+            end
+        catch e
+            @warn "No se pudo escribir vmnv raw log: $e"
+            logfile = "(error al escribir log)"
+        end
+        error("No se pudo extraer der.rho del resultado de vmnv. Volcado guardado en: $logfile")
+    end
+    if isnothing(bas_payload)
+        logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
+        try
+            mkpath(logdir)
+            logfile = joinpath(logdir, "vmnv_raw_output_global.log")
+            open(logfile, "w") do io
+                write(io, output)
+            end
+        catch e
+            @warn "No se pudo escribir vmnv raw log: $e"
+            logfile = "(error al escribir log)"
+        end
+        error("No se pudo extraer bas.h del resultado de vmnv. Volcado guardado en: $logfile")
+    end
 
     ρ = UInt8[parse(UInt8, rho_hex[i:i+1], base = 16) for i in 1:2:length(rho_hex)]
     generators = parse_generators(bas_payload, G)
@@ -263,29 +336,91 @@ function obtain_testvectors_for_party(dataset::AbstractString, ::Type{G}, vmnv_p
             end
         end
         
-        # Extraer con vmnv -shuffle del directorio temporal
-        cmd = `$vmnv_cmd -shuffle -t der.rho,bas.h $prot_arg $nizkp_arg`
-        output = read(cmd, String)
-        lines = split(output, '\n')
+    # Extraer con vmnv -shuffle del directorio temporal
+    cmd = `$vmnv_cmd -shuffle -t der.rho,bas.h $prot_arg $nizkp_arg`
+    buf = IOBuffer()
+    run(pipeline(cmd, stdout=buf, stderr=buf))
+    output = String(take!(buf))
+    output = replace(output, r"\\x1B\\[[0-?]*[ -/]*[@-~]" => "")
+    lines = split(output, '\n')
         
         rho_hex = nothing
         bas_payload = nothing
-        
-        for (idx, line) in enumerate(lines)
+
+        # Parsing robusto similar a obtain_testvectors: der.rho es la siguiente
+        # línea hex no vacía; bas.h puede ocupar varias líneas que unimos.
+        i = 1
+        while i <= length(lines)
+            line = lines[i]
             if occursin("der.rho", line)
-                if idx < length(lines)
-                    candidate = strip(lines[idx + 1])
-                    rho_hex = isempty(candidate) ? rho_hex : candidate
+                # intentar extraer hex en la misma línea
+                m = match(r"([0-9a-fA-F]{16,})", line)
+                if m !== nothing
+                    rho_hex = m.captures[1]
+                else
+                    j = i + 1
+                    while j <= length(lines)
+                        candidate = strip(lines[j])
+                        token = replace(candidate, r"\s+" => "")
+                        if !isempty(token) && occursin(r"^[0-9a-fA-F]+$", token)
+                            rho_hex = token
+                            break
+                        end
+                        j += 1
+                    end
                 end
+                i = i + 1
+                continue
             elseif occursin("bas.h", line)
-                if idx < length(lines)
-                    bas_payload = strip(lines[idx + 1])
+                j = i + 1
+                parts = String[]
+                while j <= length(lines)
+                    candidate = lines[j]
+                    s = strip(replace(candidate, r"\x1B\[[0-?]*[ -/]*[@-~]" => ""))
+                    if isempty(s)
+                        break
+                    end
+                    if occursin("der.rho", s) || occursin("TEST VECTOR", s) || occursin("bas.h", s)
+                        break
+                    end
+                    push!(parts, s)
+                    j += 1
                 end
+                bas_payload = join(parts, " ")
+                i = j
+                continue
             end
+            i += 1
         end
         
-        isnothing(rho_hex) && error("No se pudo extraer der.rho para party $party_id")
-        isnothing(bas_payload) && error("No se pudo extraer bas.h para party $party_id")
+        if isnothing(rho_hex)
+            logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
+            try
+                mkpath(logdir)
+                logfile = joinpath(logdir, "vmnv_raw_output_party_$(party_suffix).log")
+                open(logfile, "w") do io
+                    write(io, output)
+                end
+            catch e
+                @warn "No se pudo escribir vmnv raw log para party $party_id: $e"
+                logfile = "(error al escribir log)"
+            end
+            error("No se pudo extraer der.rho para party $party_id. Volcado guardado en: $logfile")
+        end
+        if isnothing(bas_payload)
+            logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
+            try
+                mkpath(logdir)
+                logfile = joinpath(logdir, "vmnv_raw_output_party_$(party_suffix).log")
+                open(logfile, "w") do io
+                    write(io, output)
+                end
+            catch e
+                @warn "No se pudo escribir vmnv raw log para party $party_id: $e"
+                logfile = "(error al escribir log)"
+            end
+            error("No se pudo extraer bas.h para party $party_id. Volcado guardado en: $logfile")
+        end
         
         ρ = UInt8[parse(UInt8, rho_hex[i:i+1], base = 16) for i in 1:2:length(rho_hex)]
         generators = parse_generators(bas_payload, G)
