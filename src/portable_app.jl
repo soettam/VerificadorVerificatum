@@ -639,8 +639,8 @@ function detailed_chequeo_multiparty(dataset::AbstractString, vmnv_path, num_par
             
             push!(parties_results, party_result)
             
-            status_icon = party_valid ? "✅" : "❌"
-            @info "Party $party_id: $status_icon $(party_valid ? "VÁLIDA" : "INVÁLIDA")"
+            status_text = party_valid ? "VÁLIDA" : "INVÁLIDA"
+            @info "Party $party_id: $status_text"
             
         catch e
             @error "Error procesando party $party_id: $e"
@@ -744,7 +744,7 @@ function cli_run(args::Vector{String})::Cint
     if get(result, "multiparty", false)
         println("Tipo: MULTI-PARTY")
         println("Número de parties: ", result["num_parties"])
-        println("Resultado global: ", result["all_valid"] ? "✅ VÁLIDO" : "❌ INVÁLIDO")
+            println("Resultado global: ", result["all_valid"] ? "VÁLIDO" : "INVÁLIDO")
         println()
         
         for party_result in result["parties"]
@@ -760,7 +760,7 @@ function cli_run(args::Vector{String})::Cint
                 continue
             end
             
-            println("Estado: ", valid ? "✅ VÁLIDA" : "❌ INVÁLIDA")
+                println("Estado: ", valid ? "VÁLIDA" : "INVÁLIDA")
             println("ρ (hex): ", party_result["parameters"]["rho_hex"])
             println("Generadores (bas.h): ", length(party_result["parameters"]["generators"]), " generadores")
             
@@ -790,7 +790,7 @@ function cli_run(args::Vector{String})::Cint
         
         valid_count = count(p -> get(p, "valid", false), result["parties"])
         println("Parties válidas: $valid_count / ", result["num_parties"])
-        println("Resultado final: ", result["all_valid"] ? "✅ TODAS VÁLIDAS" : "❌ AL MENOS UNA INVÁLIDA")
+            println("Resultado final: ", result["all_valid"] ? "TODAS VÁLIDAS" : "AL MENOS UNA INVÁLIDA")
         
     else
         # Single-party output (código original)
