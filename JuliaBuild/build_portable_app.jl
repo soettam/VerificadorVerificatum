@@ -2,6 +2,20 @@
 
 using Pkg
 
+# Requerimos una versión específica de Julia para el empaquetado reproducible.
+# Cambia esta constante si quieres soportar otra versión pero ten en cuenta
+# que el Manifest/Manifest.toml está resuelto para esta versión.
+const REQUIRED_JULIA_VERSION = v"1.11.7"
+
+if VERSION != REQUIRED_JULIA_VERSION
+    println("ERROR: Este script requiere Julia $(REQUIRED_JULIA_VERSION) para construir el ejecutable.")
+    println("Actualmente estás usando Julia $(VERSION).\n")
+    println("Si usas juliaup, cámbiala con:")
+    println("  juliaup add 1.11.7")
+    println("  juliaup default 1.11.7")
+    error("Versión de Julia inválida: se requiere $(REQUIRED_JULIA_VERSION)")
+end
+
 project_root = normpath(joinpath(@__DIR__, ".."))
 Pkg.activate(project_root)
 Pkg.instantiate()

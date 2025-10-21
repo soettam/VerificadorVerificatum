@@ -136,6 +136,24 @@ Ejemplo de uso del binario empaquetado:
 ./dist/VerificadorShuffleProofs/bin/verificador ./datasets/onpesinprecomp -mix
 ```
 
+## Versión de Julia para empaquetado
+
+El empaquetado portable fue probado y el Manifest fue resuelto con Julia 1.11.7.
+Para evitar problemas de incompatibilidad con `PackageCompiler` y los artefactos `jll`,
+recomendamos usar esa versión al construir el ejecutable. Si usas `juliaup` puedes
+instalar y seleccionar esa versión con:
+
+```bash
+juliaup add 1.11.7
+juliaup default 1.11.7
+```
+
+Después de fijar la versión, ejecuta el script de empaquetado:
+
+```bash
+julia --project=. JuliaBuild/build_portable_app.jl
+```
+
 ## Instalación local y dependencias
 
 Para trabajar sobre el repositorio y garantizar que PackageCompiler incluya todo:
