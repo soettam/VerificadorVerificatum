@@ -3,6 +3,7 @@ using SigmaProofs.Parser: decode, unmarshal_publickey, marshal_publickey, width_
 import SigmaProofs.Serializer: load, save, treespec
 using CryptoGroups.Fields: bitlength # 
 using CryptoGroups.Utils: @check
+using Printf
 
 treespec(::Type{<:Shuffle}) = (
     "publicKey.bt",
@@ -267,11 +268,14 @@ function load_verificatum_proposition(basedir::AbstractString, auxsid::AbstractS
 end
 
 
-function load_verificatum_proof(proofs::AbstractString, g::Group)
+function load_verificatum_proof(proofs::AbstractString, g::Group; party_id::Int = 1)
 
-    PERMUTATION_COMMITMENT = "$proofs/PermutationCommitment01.bt"
-    PoS_COMMITMENT = "$proofs/PoSCommitment01.bt"
-    PoS_REPLY = "$proofs/PoSReply01.bt"
+    # Formatear party_id con dos dígitos (01, 02, 03, ...)
+    party_suffix = @sprintf("%02d", party_id)
+    
+    PERMUTATION_COMMITMENT = "$proofs/PermutationCommitment$(party_suffix).bt"
+    PoS_COMMITMENT = "$proofs/PoSCommitment$(party_suffix).bt"
+    PoS_REPLY = "$proofs/PoSReply$(party_suffix).bt"
 
     G = typeof(g)
 
@@ -332,3 +336,55 @@ function store_verificatum_nizkp(basedir::Path, simulator::Simulator{Shuffle{G, 
 end
 
 store_verificatum_nizkp(dir::AbstractString, simulator::Simulator{<:Shuffle}) = store_verificatum_nizkp(LocalPath(dir), simulator)
+
+
+"""
+    load_party_input_ciphertexts(dataset, g, party_id, num_parties)
+
+Carga los ciphertexts de INPUT para una party específica en modo multi-party mixing.
+
+- Party 1: usa Ciphertexts.bt (originales)
+- Party 2+: usa CiphertextsN-1.bt (salida de la party anterior)
+"""
+function load_party_input_ciphertexts(dataset::AbstractString, g::Group, party_id::Int, num_parties::Int)
+    NIZKP = joinpath(dataset, "dir", "nizkp", "default")
+    G = typeof(g)
+    
+    if party_id == 1
+        # Primera party usa los ciphertexts originales
+        CIPHERTEXTS = joinpath(NIZKP, "Ciphertexts.bt")
+    else
+        # Parties subsecuentes usan la salida de la party anterior
+        CIPHERTEXTS = joinpath(NIZKP, "proofs", @sprintf("Ciphertexts%02d.bt", party_id - 1))
+    end
+    
+    L_tree = decode(read(CIPHERTEXTS))
+    N = width_elgamal_vec(G, L_tree)
+    return convert(Vector{ElGamalRow{G, N}}, L_tree)
+end
+
+
+"""
+    load_party_output_ciphertexts(dataset, g, party_id, num_parties)
+
+Carga los ciphertexts de OUTPUT para una party específica en modo multi-party mixing.
+
+- Party 1 a N-1: usa CiphertextsN.bt
+- Party N (última): usa ShuffledCiphertexts.bt
+"""
+function load_party_output_ciphertexts(dataset::AbstractString, g::Group, party_id::Int, num_parties::Int)
+    NIZKP = joinpath(dataset, "dir", "nizkp", "default")
+    G = typeof(g)
+    
+    if party_id == num_parties
+        # Última party produce ShuffledCiphertexts.bt
+        SHUFFLED_CIPHERTEXTS = joinpath(NIZKP, "ShuffledCiphertexts.bt")
+    else
+        # Parties intermedias producen CiphertextsN.bt
+        SHUFFLED_CIPHERTEXTS = joinpath(NIZKP, "proofs", @sprintf("Ciphertexts%02d.bt", party_id))
+    end
+    
+    L′_tree = decode(read(SHUFFLED_CIPHERTEXTS))
+    N = width_elgamal_vec(G, L′_tree)
+    return convert(Vector{ElGamalRow{G, N}}, L′_tree)
+end
