@@ -29,12 +29,19 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 # Requisitos del sistema
 
 **Sistema operativo:**
-- Linux (Ubuntu 24.04)
-- Windows 10/11 con WSL 2
+- **Ubuntu 24.04**
+- **Windows 10/11** con WSL 2 (Windows Subsystem for Linux)
 
-**Memoria RAM:** Mínimo 8 GB (16 GB recomendado para datasets grandes)
+**Software necesario:**
+- **Julia 1.11.7** (instalado nativamente en el sistema operativo)
+- **Verificatum VMN 3.1.0** (en Ubuntu nativo, o en WSL para usuarios de Windows)
+- **Git** (para clonar el repositorio)
 
-**Espacio en disco:** ~2 GB (para Julia, Verificatum y dependencias)
+**Hardware:**
+- **Memoria RAM:** Mínimo 8 GB (16 GB recomendado para datasets grandes)
+- **Espacio en disco:** ~2 GB (para Julia, Verificatum y dependencias)
+
+**Nota para Windows:** Julia se instala en Windows nativamente, pero Verificatum requiere WSL 2 con Ubuntu.
 
 ---
 
@@ -62,12 +69,33 @@ julia --version
 
 ### En Windows:
 
-1. Instalar WSL 2 desde PowerShell como Administrador:
+**Importante:** Julia se instala nativamente en Windows (no en WSL).
+
+1. **Instalar juliaup** desde PowerShell (no necesita ser Administrador):
+   ```powershell
+   winget install julia -s msstore
+   ```
+   
+   O descargarlo manualmente desde: https://install.julialang.org
+
+2. **Instalar Julia 1.11.7** desde PowerShell:
+   ```powershell
+   juliaup add 1.11.7
+   juliaup default 1.11.7
+   ```
+
+3. **Verificar instalación**:
+   ```powershell
+   julia --version
+   # Debe mostrar: julia version 1.11.7
+   ```
+
+4. **Instalar WSL 2** (necesario solo para Verificatum) desde PowerShell como Administrador:
    ```powershell
    wsl --install
    ```
-2. Reiniciar el equipo
-3. Instalar verificatum dentro de WSL (ver [Paso 2](#paso-2-instalar-verificatum))
+
+5. **Reiniciar el equipo**
 
 ## Paso 2: Instalar Verificatum
 
@@ -75,17 +103,15 @@ Verificatum es necesario para extraer `der.rho` y las bases independientes (`bas
 
 ### En Ubuntu:
 
-Instalar desde la carpeta ~/$
-
 ```bash
 # 1. Instalar dependencias del sistema
-
 sudo apt update
-sudo sudo apt-get install --yes m4 cpp gcc make libtool automake autoconf libgmp-dev openjdk-21-jdk
+sudo apt-get install --yes m4 cpp gcc make libtool automake autoconf libgmp-dev openjdk-21-jdk
 sudo apt install -y openssh-server
 sudo systemctl enable --now ssh
 
-# 2. Instalar Verificatum
+# 2. Instalar Verificatum desde el directorio home
+cd ~
 wget https://www.verificatum.org/files/verificatum-vmn-3.1.0-full.tar.gz  
 tar xvfz verificatum-vmn-3.1.0-full.tar.gz
 cd verificatum-vmn-3.1.0-full
@@ -96,9 +122,37 @@ vmnv --version
 # Debe mostrar la versión de Verificatum
 ```
 
+### En Windows:
+
+**Importante:** Verificatum solo funciona en Linux, por lo que debe instalarse en WSL Ubuntu.
+
+1. **Abrir WSL Ubuntu** (escribir `wsl` en PowerShell o desde el menú de inicio)
+
+2. **Instalar dependencias y Verificatum** en WSL Ubuntu:
+   ```bash
+   # 1. Instalar dependencias del sistema
+   sudo apt update
+   sudo apt-get install --yes m4 cpp gcc make libtool automake autoconf libgmp-dev openjdk-21-jdk
+   sudo apt install -y openssh-server
+   sudo systemctl enable --now ssh
+   
+   # 2. Instalar Verificatum desde el directorio home
+   cd ~
+   wget https://www.verificatum.org/files/verificatum-vmn-3.1.0-full.tar.gz  
+   tar xvfz verificatum-vmn-3.1.0-full.tar.gz
+   cd verificatum-vmn-3.1.0-full
+   make install
+   
+   # 3. Verificar instalación
+   vmnv --version
+   # Debe mostrar la versión de Verificatum
+   ```
+
 **Documentación oficial completa:** https://www.verificatum.org
 
 ## Paso 3: Clonar este repositorio
+
+### En Ubuntu:
 
 ```bash
 # Clonar el repositorio
@@ -107,11 +161,30 @@ git clone https://github.com/soettam/VerificadorVerificatum.git
 cd VerificadorVerificatum
 ```
 
-**Ruta del repositorio:** `~/VerificadorVerificatum` (o donde lo hayas clonado)
+**Ruta del repositorio:** `~/VerificadorVerificatum`
+
+### En Windows:
+
+**Importante:** El repositorio se clona en el sistema de archivos de Windows (no en WSL).
+
+1. **Abrir PowerShell** y navegar al directorio deseado:
+   ```powershell
+   cd C:\Users\<tu-usuario>
+   
+   # Clonar el repositorio
+   git clone https://github.com/soettam/VerificadorVerificatum.git
+   cd VerificadorVerificatum
+   ```
+
+**Ruta del repositorio:** `C:\Users\<tu-usuario>\VerificadorVerificatum`
+
+**Nota:** Si Git no está instalado en Windows, descárgalo desde: https://git-scm.com/download/win
 
 ---
 
 ## Paso 4: Instalar dependencias de Julia
+
+### En Ubuntu:
 
 Desde la raíz del repositorio clonado:
 
@@ -126,9 +199,31 @@ julia --project=. -e 'using Pkg; Pkg.instantiate()'
 julia --project=. -e 'using ShuffleProofs; println("✓ ShuffleProofs cargado correctamente")'
 ```
 
+### En Windows:
+
+Desde PowerShell, en la raíz del repositorio clonado:
+
+```powershell
+# Asegurarse de estar en el directorio correcto
+cd C:\Users\<tu-usuario>\VerificadorVerificatum
+
+# Activar el entorno del proyecto e instalar dependencias
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+
+# Verificar que ShuffleProofs se instaló correctamente
+julia --project=. -e "using ShuffleProofs; println(`"✓ ShuffleProofs cargado correctamente`")"
+```
+
 **Nota:** Si aparece el error "Package JSON not found", ejecuta:
+
+**En Ubuntu:**
 ```bash
 julia --project=. -e 'using Pkg; Pkg.add("JSON")'
+```
+
+**En Windows:**
+```powershell
+julia --project=. -e "using Pkg; Pkg.add(`"JSON`")"
 ```
 
 ---
@@ -136,6 +231,8 @@ julia --project=. -e 'using Pkg; Pkg.add("JSON")'
 # Compilación del verificador portable
 
 Una vez instalado todo lo anterior, compila el verificador en un ejecutable standalone:
+
+### En Ubuntu:
 
 ```bash
 # Asegurarse de estar en el directorio del repositorio
@@ -145,13 +242,23 @@ cd ~/VerificadorVerificatum
 julia --project=. JuliaBuild/build_portable_app.jl
 ```
 
-**Salida esperada:**
-- En Ubuntu: `dist/VerificadorShuffleProofs/`
-- En Windows: `distwindows/VerificadorShuffleProofs/`
+**Salida:** `dist/VerificadorShuffleProofs/`  
+**Ruta del ejecutable:** `~/VerificadorVerificatum/dist/VerificadorShuffleProofs/bin/verificador`
 
-**Ruta del ejecutable:**
-- Ubuntu: `~/VerificadorVerificatum/dist/VerificadorShuffleProofs/bin/verificador`
-- Windows: `C:\Users\<tu-usuario>\VerificadorVerificatum\distwindows\VerificadorShuffleProofs\bin\verificador.exe`
+### En Windows:
+
+Desde PowerShell:
+
+```powershell
+# Asegurarse de estar en el directorio del repositorio
+cd C:\Users\<tu-usuario>\VerificadorVerificatum
+
+# Compilar el verificador portable (tarda ~3-5 minutos)
+julia --project=. JuliaBuild\build_portable_app.jl
+```
+
+**Salida:** `distwindows\VerificadorShuffleProofs\`  
+**Ruta del ejecutable:** `C:\Users\<tu-usuario>\VerificadorVerificatum\distwindows\VerificadorShuffleProofs\bin\verificador.exe`
 
 **Nota:** El ejecutable es portable y puede copiarse a otro sistema sin necesidad de instalar Julia nuevamente.
 
@@ -159,21 +266,23 @@ julia --project=. JuliaBuild/build_portable_app.jl
 
 # Ejecución del verificador
 
-## Verificar un dataset single-party (modo shuffle)
+## En Ubuntu:
+
+### Verificar un dataset single-party (modo shuffle)
 
 ```bash
 cd ~/VerificadorVerificatum
 ./dist/VerificadorShuffleProofs/bin/verificador ./datasets/onpesinprecomp -shuffle
 ```
 
-## Verificar un dataset multi-party (modo mix)
+### Verificar un dataset multi-party (modo mix)
 
 ```bash
 cd ~/VerificadorVerificatum
 ./dist/VerificadorShuffleProofs/bin/verificador ./datasets/onpe100 -mix
 ```
 
-## Verificar con dataset de ejemplo incluido
+### Verificar con dataset de ejemplo incluido
 
 Si se empaquetaron datasets de ejemplo durante la compilación:
 
@@ -182,26 +291,44 @@ cd ~/VerificadorVerificatum/dist/VerificadorShuffleProofs
 ./bin/verificador ./resources/validation_sample/onpe3 -shuffle
 ```
 
-## Salida del verificador
+## En Windows:
 
-El verificador genera un archivo JSON con los resultados:
+### Verificar un dataset single-party (modo shuffle)
 
-**Archivo:** `chequeo_detallado_result.json` (en el directorio actual)
+```powershell
+cd C:\Users\<tu-usuario>\VerificadorVerificatum
+.\distwindows\VerificadorShuffleProofs\bin\verificador.exe .\datasets\onpesinprecomp -shuffle
+```
 
-**Contenido:**
-- Parámetros de la verificación (ρ, generadores, semilla)
-- Desafíos de permutación y reencriptado
-- Resultados de cada chequeo (t₁, t₂, t₃, t₄, 𝐭̂, A, B, C, D, F)
-- Estado final: VÁLIDA o INVÁLIDA
-
-### Ejemplo en Windows
+### Verificar un dataset multi-party (modo mix)
 
 ```powershell
 cd C:\Users\<tu-usuario>\VerificadorVerificatum
 .\distwindows\VerificadorShuffleProofs\bin\verificador.exe .\datasets\onpe100 -mix
 ```
 
-El verificador detecta automáticamente WSL y ejecuta `vmnv` a través de él.
+### Verificar con dataset de ejemplo incluido
+
+Si se empaquetaron datasets de ejemplo durante la compilación:
+
+```powershell
+cd C:\Users\<tu-usuario>\VerificadorVerificatum\distwindows\VerificadorShuffleProofs
+.\bin\verificador.exe .\resources\validation_sample\onpe3 -shuffle
+```
+
+**Importante:** El verificador detecta automáticamente WSL y ejecuta `vmnv` (instalado en WSL) cuando sea necesario.
+
+## Salida del verificador
+
+El verificador genera un archivo JSON con los resultados en el directorio actual:
+
+**Archivo generado:** `chequeo_detallado_result.json`
+
+**Contenido:**
+- Parámetros de la verificación (ρ, generadores, semilla)
+- Desafíos de permutación y reencriptado
+- Resultados de cada chequeo (t₁, t₂, t₃, t₄, 𝐭̂, A, B, C, D, F)
+- Estado final: VÁLIDA o INVÁLIDA
 
 ---
 
@@ -330,10 +457,15 @@ Este proyecto implementa protocolos de verificación para mixnets verificados p�
 ## Error: "No se encontró vmnv"
 **Causa:** Verificatum no está instalado o no está en el PATH.
 
-**Solución:**
+**Solución en Ubuntu:**
 1. Verificar instalación: `vmnv --version`
 2. Si no está instalado, seguir [Paso 2: Instalar Verificatum](#paso-2-instalar-verificatum)
-3. En Windows, asegurarse de que WSL está instalado y Verificatum dentro de WSL
+
+**Solución en Windows:**
+1. Abrir WSL Ubuntu: `wsl`
+2. Verificar instalación: `vmnv --version`
+3. Si no está instalado, instalar Verificatum dentro de WSL siguiendo [Paso 2](#paso-2-instalar-verificatum)
+4. Asegurarse de que el ejecutable se ejecuta desde WSL o que el verificador detecta WSL correctamente
 
 ## Error: "No se pudo extraer der.rho"
 **Causa:** La salida de `vmnv` no tiene el formato esperado o el dataset es inválido.
@@ -346,22 +478,43 @@ Este proyecto implementa protocolos de verificación para mixnets verificados p�
 3. Ver log crudo en: `<dataset>/dir/nizkp/tmp_logs/vmnv_raw_output_global.log`
 
 ## Error al compilar: "Package JSON not found"
-**Solución:**
+
+**Solución en Ubuntu:**
 ```bash
 cd ~/VerificadorVerificatum
 julia --project=. -e 'using Pkg; Pkg.add("JSON")'
 ```
 
+**Solución en Windows:**
+```powershell
+cd C:\Users\<tu-usuario>\VerificadorVerificatum
+julia --project=. -e "using Pkg; Pkg.add(`"JSON`")"
+```
+
 ## Error al compilar: "PackageCompiler version mismatch"
 **Causa:** Versión incorrecta de Julia.
 
-**Solución:**
+**Solución en Ubuntu:**
 ```bash
 juliaup default 1.11.7
 cd ~/VerificadorVerificatum
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 julia --project=. JuliaBuild/build_portable_app.jl
 ```
+
+**Solución en Windows:**
+```powershell
+juliaup default 1.11.7
+cd C:\Users\<tu-usuario>\VerificadorVerificatum
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. JuliaBuild\build_portable_app.jl
+```
+
+## Error en Windows: "git no encontrado" al clonar
+**Causa:** Git no está instalado en Windows.
+
+**Solución:**
+Descargar e instalar Git para Windows desde: https://git-scm.com/download/win
 # Detalles adicionales
 ## Acerca de los chequeos criptográficos
 
@@ -443,18 +596,43 @@ $$(F^v \cdot F' = \text{Enc}{pk}(1, -k_F) \cdot \prod_i (w_i')^{k{E,i}}).$$
 
 Comandos de ejemplo para generar `der.rho` y `bas.h` desde `protInfo.xml` y el directorio nizkp:
 
-Cuando se usa "vmn -mix o -decrypt" el archivo dir/nizkp/<auxsid>/type es "mixing" , usar para extraer rho y bases:
+### En Ubuntu:
+
+**Para modo mixing** (cuando el archivo `dir/nizkp/<auxsid>/type` contiene "mixing"):
 
 ```bash
-/usr/local/bin/vmnv -mix -t der.rho,bas.h \ 
+/usr/local/bin/vmnv -mix -t der.rho,bas.h \
     /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
 ```
-Cuando se usa "vmn -shuffle" el archivo dir/nizkp/<auxsid>/type es "shuffling" usar para extraer rho y bases:
+
+**Para modo shuffling** (cuando el archivo `dir/nizkp/<auxsid>/type` contiene "shuffling"):
 
 ```bash
-/usr/local/bin/vmnv -shuffle -t der.rho,bas.h \ 
+/usr/local/bin/vmnv -shuffle -t der.rho,bas.h \
     /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
 ```
+
+### En Windows:
+
+**Importante:** Estos comandos deben ejecutarse desde WSL Ubuntu, ya que Verificatum solo está instalado allí.
+
+1. **Abrir WSL Ubuntu**: `wsl`
+
+2. **Ejecutar vmnv según el modo**:
+
+**Para modo mixing:**
+```bash
+/usr/local/bin/vmnv -mix -t der.rho,bas.h \
+    /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
+```
+
+**Para modo shuffling:**
+```bash
+/usr/local/bin/vmnv -shuffle -t der.rho,bas.h \
+    /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
+```
+
+**Nota:** Si tus archivos están en Windows (por ejemplo `C:\datasets\...`), puedes accederlos desde WSL usando: `/mnt/c/datasets/...`
 
 
 
