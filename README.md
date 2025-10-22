@@ -119,6 +119,36 @@ Cuando se usa "vmn -shuffle" el archivo dir/nizkp/<auxsid>/type es "shuffling" u
     /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
 ```
 
+## Uso en Windows con WSL
+
+El verificador Julia requiere Verificatum (`vmnv`) para extraer `der.rho` y las bases independientes (`bas.h`). En Windows, la forma recomendada es usar WSL (Windows Subsystem for Linux) con Verificatum instalado.
+
+### Instalar WSL
+
+Abre PowerShell o Terminal de Windows como **Administrador** y ejecuta:
+
+```powershell
+wsl --install
+```
+
+Esto instalará WSL 2 con Ubuntu por defecto. Reinicia tu equipo si es necesario.
+
+### Instalar Verificatum en WSL
+
+Una vez instalado WSL, accede a él ejecutando `wsl` en PowerShell. Luego instala Verificatum siguiendo las instrucciones oficiales en:
+
+**https://www.verificatum.org**
+
+### Usar el verificador desde Windows
+
+El verificador Julia detecta automáticamente WSL en Windows y ejecuta `vmnv` a través de él. Simplemente ejecuta el binario Windows normalmente:
+
+```powershell
+.\distwindows\VerificadorShuffleProofs\bin\verificador.exe .\datasets\onpe -mix
+```
+
+El verificador invocará `wsl vmnv` automáticamente para extraer `der.rho` y `bas.h`, convirtiendo las rutas de Windows a formato WSL cuando sea necesario.
+
 # Construcción portable (PackageCompiler)
 
 El proyecto incluye un script que empaqueta la aplicación con PackageCompiler. Ejecutalo desde la raíz del repositorio con Julia instalado:
