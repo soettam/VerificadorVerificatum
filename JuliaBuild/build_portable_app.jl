@@ -87,12 +87,74 @@ if isdir(sample_dataset)
     copytree(sample_dataset, joinpath(resources_dir, "validation_sample"))
 end
 
-# Copiar README portable desde la raíz del proyecto
-readme_portable = joinpath(project_root, "README-portable.md")
-if isfile(readme_portable)
-    cp(readme_portable, joinpath(app_dir, "README-portable.md"); force=true)
+# Generar README-portable.md extrayendo secciones específicas del README.md principal
+readme_main = joinpath(project_root, "README.md")
+if isfile(readme_main)
+    println("[build] Generando README-portable.md desde README.md...")
+    
+    # Leer el README principal
+    readme_content = read(readme_main, String)
+    
+    # Función para extraer una sección específica del markdown
+    function extract_section(content::String, section_title::String)
+        # Buscar el encabezado de la sección (# Título)
+        section_regex = Regex("^# $(section_title)\$", "m")
+        m = match(section_regex, content)
+        
+        if m === nothing
+            @warn "No se encontró la sección: $section_title"
+            return ""
+        end
+        
+        start_pos = m.offset
+        
+        # Buscar el siguiente encabezado de nivel 1 (# ) o el final del archivo
+        next_section_regex = r"^# (?!#)"m
+        next_match = match(next_section_regex, content, start_pos + length(m.match))
+        
+        end_pos = next_match === nothing ? length(content) : next_match.offset - 1
+        
+        return strip(content[start_pos:end_pos])
+    end
+    
+    # Extraer las secciones requeridas
+    section_ejecucion = extract_section(readme_content, "Ejecución del verificador")
+    section_que_verifica = extract_section(readme_content, "Qué verifica este software")
+    section_estructura = extract_section(readme_content, "Estructura de archivos del dataset")
+    
+    # Generar el README-portable.md
+    portable_readme_path = joinpath(app_dir, "README-portable.md")
+    open(portable_readme_path, "w") do io
+        println(io, "# Verificador ShuffleProofs para Verificatum")
+        println(io, "")
+        println(io, "Verificador portable de pruebas de shuffle (barajado verificable) compatible con Verificatum Mix-Net.")
+        println(io, "")
+        println(io, "---")
+        println(io, "")
+        
+        if !isempty(section_ejecucion)
+            println(io, section_ejecucion)
+            println(io, "")
+            println(io, "---")
+            println(io, "")
+        end
+        
+        if !isempty(section_que_verifica)
+            println(io, section_que_verifica)
+            println(io, "")
+            println(io, "---")
+            println(io, "")
+        end
+        
+        if !isempty(section_estructura)
+            println(io, section_estructura)
+            println(io, "")
+        end
+    end
+    
+    println("[build] README-portable.md generado exitosamente")
 else
-    @warn "No se encontró README-portable.md en la raíz del proyecto"
+    @warn "No se encontró README.md en la raíz del proyecto"
 end
 
 println("Aplicación empaquetada en: $app_dir")
