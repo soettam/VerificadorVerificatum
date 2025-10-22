@@ -87,18 +87,12 @@ if isdir(sample_dataset)
     copytree(sample_dataset, joinpath(resources_dir, "validation_sample"))
 end
 
-open(joinpath(app_dir, "README-portable.md"), "w") do io
-    println(io, "# Verificador ShuffleProofs Portable")
-    println(io)
-    println(io, "## Uso")
-    println(io, "1. Instancie el ejecutable:\n   ```\n   ./bin/verificador /ruta/al/dataset\n   ```")
-    println(io, "2. Si no se encuentra `vmnv` en el sistema, el ejecutable usará la copia en `resources/verificatum-vmn-3.1.0`. Asegúrese de que los binarios tengan permisos de ejecución.")
-    println(io, "3. Los resultados se guardan en `chequeo_detallado_result.json` dentro del directorio de trabajo actual.")
-    println(io)
-    println(io, "## Contenido")
-    println(io, "- `bin/verificador`: ejecutable principal.")
-    println(io, "- `resources/verificatum-vmn-3.1.0`: binarios Java de Verificatum (si se encontraron).")
-    println(io, "- `resources/validation_sample`: datasets de muestra.")
+# Copiar README portable desde la raíz del proyecto
+readme_portable = joinpath(project_root, "README-portable.md")
+if isfile(readme_portable)
+    cp(readme_portable, joinpath(app_dir, "README-portable.md"); force=true)
+else
+    @warn "No se encontró README-portable.md en la raíz del proyecto"
 end
 
 println("Aplicación empaquetada en: $app_dir")
