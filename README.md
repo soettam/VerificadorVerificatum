@@ -515,6 +515,43 @@ julia --project=. JuliaBuild\build_portable_app.jl
 
 **Solución:**
 Descargar e instalar Git para Windows desde: https://git-scm.com/download/win
+
+## Error ENOENT en Windows 10/11 (Julia/PackageCompiler)
+
+**Indicios del error:**  
+Durante la compilación con `build_portable_app.jl`, aparece un mensaje similar a:
+
+```
+ERROR: LoadError: IOError: open("...mingw64\lib\gcc\x86_64-w64-mingw32\14.2.0\include\c++\ext\pb_ds\detail\bin_search_tree_\bin_search_tree_.hpp", 769, 33060): 
+no such file or directory (ENOENT)
+```
+El proceso se detiene en la etapa de `bundle_artifacts` o `cptree`.
+
+**Causa:**  
+Windows tiene un límite de 260 caracteres por ruta, lo que impide copiar archivos con nombres largos dentro de `artifacts` de PackageCompiler.
+
+---
+
+*** Solución (PowerShell como Administrador) ***
+
+Ejecuta el siguiente comando:
+
+```powershell
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+  -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
+
+Verifica que esté habilitado:
+
+```powershell
+Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name LongPathsEnabled
+```
+
+> Si el valor es **1**, las rutas largas están activadas.  
+> Cierra la sesión o reinicia para aplicar los cambios.
+
+---
+
 # Detalles adicionales
 ## Acerca de los chequeos criptográficos
 
