@@ -18,7 +18,8 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 6. [Estructura de archivos del dataset](#estructura-de-archivos-del-dataset)
 7. [Referencias](#referencias)
 8. [Solución de problemas](#solución-de-problemas)
-9. [Detalles adicionales](#detalles-adicionales)
+9. [Testing automatizado en VM](#testing-automatizado-en-vm)
+10. [Detalles adicionales](#detalles-adicionales)
    - [Acerca de los chequeos criptográficos](#acerca-de-los-chequeos-criptográficos)
    - [Correspondencia con la documentación de Verificatum: A, B, C, D, F](#correspondencia-con-la-documnetacion-de-verificatum-a-b-c-d-f)
    - [Archivos usados para la verificación](#archivos-usados-para-la-verificación)
@@ -38,7 +39,8 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 - **Git** (para clonar el repositorio)
 
 **Hardware:**
-- **Memoria RAM:** Mínimo 8 GB (16 GB recomendado para datasets grandes)
+- **Memoria RAM:** Mínimo 8 GB **requeridos para compilación** (16 GB recomendado para datasets grandes)
+  - **Importante:** PackageCompiler necesita al menos 8 GB de RAM disponible durante la compilación del verificador portable. Con menos RAM, la compilación fallará por falta de memoria (OOM).
 - **Espacio en disco:** ~2 GB (para Julia, Verificatum y dependencias)
 
 **Nota para Windows:** Julia se instala en Windows nativamente, pero Verificatum requiere WSL 2 con Ubuntu.
@@ -118,7 +120,7 @@ cd verificatum-vmn-3.1.0-full
 make install
 
 # 3. Verificar instalación
-vmnv --version
+vmn -version
 # Debe mostrar la versión de Verificatum
 ```
 
@@ -144,7 +146,7 @@ vmnv --version
    make install
    
    # 3. Verificar instalación
-   vmnv --version
+   vmn -version
    # Debe mostrar la versión de Verificatum
    ```
 
@@ -195,8 +197,16 @@ cd ~/VerificadorVerificatum
 # Activar el entorno del proyecto e instalar dependencias
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
-# Verificar que ShuffleProofs se instaló correctamente
-julia --project=. -e 'using ShuffleProofs; println("✓ ShuffleProofs cargado correctamente")'
+# # Verificar que ShuffleProofs se instaló correctamente
+julia --project=. -e "using ShuffleProofs; println(\"ShuffleProofs cargado correctamente\")"
+```
+
+**Salida esperada:**
+```
+ShuffleProofs cargado correctamente
+```
+
+**Nota:** Si aparece el error "Package JSON not found", ejecuta:
 ```
 
 ### En Windows:
@@ -211,7 +221,12 @@ cd C:\Users\<tu-usuario>\VerificadorVerificatum
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
 # Verificar que ShuffleProofs se instaló correctamente
-julia --project=. -e "using ShuffleProofs; println(`"✓ ShuffleProofs cargado correctamente`")"
+julia --project=. -e 'using ShuffleProofs; println("ShuffleProofs cargado correctamente")'
+```
+
+**Salida esperada:**
+```
+ShuffleProofs cargado correctamente
 ```
 
 **Nota:** Si aparece el error "Package JSON not found", ejecuta:
@@ -265,6 +280,13 @@ julia --project=. JuliaBuild\build_portable_app.jl
 ---
 
 # Ejecución del verificador
+
+**Sintaxis general:**
+```bash
+verificador <directorio_dataset> -shuffle|-mix
+```
+
+**Importante:** El directorio del dataset debe ir **antes** del modo (`-shuffle` o `-mix`).
 
 ## En Ubuntu:
 
@@ -454,18 +476,46 @@ Este proyecto implementa protocolos de verificación para mixnets verificados p�
 
 # Solución de problemas
 
-## Error: "No se encontró vmnv"
+## Error durante compilación: "Out of Memory" o proceso killed
+
+**Causa:** PackageCompiler necesita al menos 8 GB de RAM disponible durante la compilación.
+
+**Síntomas:**
+- Mensaje: `Free system memory dropped to XX MiB during sysimage compilation`
+- Error: `failed process: ... ProcessSignaled(9)`
+- El proceso de compilación se detiene abruptamente
+
+**Solución:**
+1. Cerrar aplicaciones que consuman mucha RAM
+2. Verificar memoria disponible: `free -h`
+3. Asegurar que tienes al menos 8 GB de RAM libre antes de compilar
+4. En sistemas con poca RAM, considerar:
+   - Añadir swap: `sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile`
+   - Compilar en una máquina con más RAM
+   - Usar el verificador precompilado si está disponible
+
+## Error durante compilación: "EOVERFLOW: value too large for defined data type"
+
+**Causa:** Intentar compilar en un sistema de archivos montado (como sshfs o 9p) que no soporta operaciones con archivos grandes.
+
+**Solución:**
+- Clonar el repositorio en el sistema de archivos local (no en montajes de red)
+- En WSL, clonar en `/home/usuario/` en lugar de `/mnt/c/...`
+
+## Error: "No se encontró vmn" o "No se encontró vmnv"
 **Causa:** Verificatum no está instalado o no está en el PATH.
 
 **Solución en Ubuntu:**
-1. Verificar instalación: `vmnv --version`
+1. Verificar instalación: `vmn -version`
 2. Si no está instalado, seguir [Paso 2: Instalar Verificatum](#paso-2-instalar-verificatum)
 
 **Solución en Windows:**
 1. Abrir WSL Ubuntu: `wsl`
-2. Verificar instalación: `vmnv --version`
+2. Verificar instalación: `vmn -version`
 3. Si no está instalado, instalar Verificatum dentro de WSL siguiendo [Paso 2](#paso-2-instalar-verificatum)
 4. Asegurarse de que el ejecutable se ejecuta desde WSL o que el verificador detecta WSL correctamente
+
+**Nota:** El comando correcto es `vmn -version` (con un solo guion), no `vmnv --version`.
 
 ## Error: "No se pudo extraer der.rho"
 **Causa:** La salida de `vmnv` no tiene el formato esperado o el dataset es inválido.
@@ -473,8 +523,8 @@ Este proyecto implementa protocolos de verificación para mixnets verificados p�
 **Solución:**
 1. Verificar estructura del dataset (debe tener `protInfo.xml` y `dir/nizkp/default/`)
 2. Comprobar el modo correcto:
-   - Si `type` es "shuffling" → usar `-shuffle`
-   - Si `type` es "mixing" → usar `-mix`
+   - Si `type` es "shuffling" -> usar `-shuffle`
+   - Si `type` es "mixing" -> usar `-mix`
 3. Ver log crudo en: `<dataset>/dir/nizkp/tmp_logs/vmnv_raw_output_global.log`
 
 ## Error al compilar: "Package JSON not found"
@@ -670,6 +720,119 @@ Comandos de ejemplo para generar `der.rho` y `bas.h` desde `protInfo.xml` y el d
 ```
 
 **Nota:** Si tus archivos están en Windows (por ejemplo `C:\datasets\...`), puedes accederlos desde WSL usando: `/mnt/c/datasets/...`
+
+---
+
+# Testing automatizado en VM
+
+Este repositorio incluye scripts automatizados para validar la instalación en una VM limpia de Ubuntu 24.04.
+
+## Ubicación de los scripts
+
+```
+PruebaVM/
+└── Ubuntu/
+    ├── 1_crear_vm.sh          # Crear VM con Multipass
+    ├── 2_instalar_todo.sh     # Instalar Julia + Verificatum + compilar
+    ├── 3_probar_verificador.sh # Ejecutar tests de verificación
+    └── 4_limpiar.sh           # Limpiar VM y logs
+```
+
+## Requisitos previos
+
+- **Multipass** instalado en el host
+- **8 GB RAM disponible** (para compilación en la VM)
+- **~10 GB espacio en disco** (VM + compilación)
+
+### Instalar Multipass en Ubuntu:
+
+```bash
+sudo snap install multipass
+```
+
+## Uso
+
+### 1. Crear VM
+
+```bash
+cd ~/VerificadorVerificatum
+./PruebaVM/Ubuntu/1_crear_vm.sh
+```
+
+Crea una VM llamada `verificatum-test` con:
+- Ubuntu 24.04
+- 2 CPUs, 8 GB RAM, 8 GB disco
+- Monta el repositorio en `/mnt/repo`
+
+### 2. Instalar y compilar
+
+```bash
+./PruebaVM/Ubuntu/2_instalar_todo.sh
+```
+
+Ejecuta automáticamente:
+- Instalación de Julia 1.11.7 via juliaup
+- Instalación de Verificatum VMN 3.1.0
+- Clonación del repositorio en la VM
+- Instalación de dependencias Julia
+- Compilación del verificador portable
+
+**Duración aproximada:** 15-20 minutos
+
+### 3. Ejecutar tests
+
+```bash
+./PruebaVM/Ubuntu/3_probar_verificador.sh
+```
+
+Ejecuta 4 tests automáticos:
+- **TEST 1:** Dataset P256 (shuffle simple) - si está disponible
+- **TEST 2:** Dataset onpesinprecomp (sin precómputo)
+- **TEST 3:** Dataset onpe100 (mix multiparty completo)
+- **TEST 4:** Manejo de errores (directorio inexistente)
+
+**Salida esperada:**
+```
+Resultados:
+  TEST 1 (P256):            SKIP
+  TEST 2 (onpesinprecomp):  PASS
+  TEST 3 (onpe100):         PASS
+  TEST 4 (error handling):  PASS
+
+Exitosos: 3
+Fallidos:  0
+Omitidos:  0
+
+[OK] TODAS LAS PRUEBAS EXITOSAS
+```
+
+Los resultados JSON se guardan en `PruebaVM/logs/`.
+
+### 4. Limpiar
+
+```bash
+./PruebaVM/Ubuntu/4_limpiar.sh
+```
+
+Elimina la VM y opcionalmente los logs.
+
+## Logs
+
+Los scripts generan logs detallados en:
+- `PruebaVM/logs/vm_creation_*.log` - Creación de VM
+- `PruebaVM/logs/installation_*.log` - Instalación y compilación
+- `PruebaVM/logs/test3_*.log` - Ejecución de tests
+- `PruebaVM/logs/test*_output.json` - Resultados JSON de cada test
+
+## Notas
+
+- **RAM:** 8 GB es el mínimo absoluto para compilación. Con menos RAM, PackageCompiler fallará con OOM.
+- **Tiempo total:** ~25-30 minutos para todo el proceso (creación + instalación + tests).
+- **Datasets:** El script usa datasets de `~/VerificadorVerificatum/datasets/` dentro de la VM.
+
+---
+
+````
 
 
 
