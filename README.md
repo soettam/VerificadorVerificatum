@@ -253,7 +253,7 @@ Una vez instalado todo lo anterior, compila el verificador en un ejecutable stan
 # Asegurarse de estar en el directorio del repositorio
 cd ~/VerificadorVerificatum
 
-# Compilar el verificador portable (tarda ~3-5 minutos)
+# Compilar el verificador portable (tarda ~15-20 minutos)
 julia --project=. JuliaBuild/build_portable_app.jl
 ```
 
@@ -268,7 +268,7 @@ Desde PowerShell:
 # Asegurarse de estar en el directorio del repositorio
 cd C:\Users\<tu-usuario>\VerificadorVerificatum
 
-# Compilar el verificador portable (tarda ~3-5 minutos)
+# Compilar el verificador portable (tarda ~15-20 minutos)
 julia --project=. JuliaBuild\build_portable_app.jl
 ```
 
@@ -722,119 +722,6 @@ Comandos de ejemplo para generar `der.rho` y `bas.h` desde `protInfo.xml` y el d
 **Nota:** Si tus archivos están en Windows (por ejemplo `C:\datasets\...`), puedes accederlos desde WSL usando: `/mnt/c/datasets/...`
 
 ---
-
-# Testing automatizado en VM
-
-Este repositorio incluye scripts automatizados para validar la instalación en una VM limpia de Ubuntu 24.04.
-
-## Ubicación de los scripts
-
-```
-PruebaVM/
-└── Ubuntu/
-    ├── 1_crear_vm.sh          # Crear VM con Multipass
-    ├── 2_instalar_todo.sh     # Instalar Julia + Verificatum + compilar
-    ├── 3_probar_verificador.sh # Ejecutar tests de verificación
-    └── 4_limpiar.sh           # Limpiar VM y logs
-```
-
-## Requisitos previos
-
-- **Multipass** instalado en el host
-- **8 GB RAM disponible** (para compilación en la VM)
-- **~10 GB espacio en disco** (VM + compilación)
-
-### Instalar Multipass en Ubuntu:
-
-```bash
-sudo snap install multipass
-```
-
-## Uso
-
-### 1. Crear VM
-
-```bash
-cd ~/VerificadorVerificatum
-./PruebaVM/Ubuntu/1_crear_vm.sh
-```
-
-Crea una VM llamada `verificatum-test` con:
-- Ubuntu 24.04
-- 2 CPUs, 8 GB RAM, 8 GB disco
-- Monta el repositorio en `/mnt/repo`
-
-### 2. Instalar y compilar
-
-```bash
-./PruebaVM/Ubuntu/2_instalar_todo.sh
-```
-
-Ejecuta automáticamente:
-- Instalación de Julia 1.11.7 via juliaup
-- Instalación de Verificatum VMN 3.1.0
-- Clonación del repositorio en la VM
-- Instalación de dependencias Julia
-- Compilación del verificador portable
-
-**Duración aproximada:** 15-20 minutos
-
-### 3. Ejecutar tests
-
-```bash
-./PruebaVM/Ubuntu/3_probar_verificador.sh
-```
-
-Ejecuta 4 tests automáticos:
-- **TEST 1:** Dataset P256 (shuffle simple) - si está disponible
-- **TEST 2:** Dataset onpesinprecomp (sin precómputo)
-- **TEST 3:** Dataset onpe100 (mix multiparty completo)
-- **TEST 4:** Manejo de errores (directorio inexistente)
-
-**Salida esperada:**
-```
-Resultados:
-  TEST 1 (P256):            SKIP
-  TEST 2 (onpesinprecomp):  PASS
-  TEST 3 (onpe100):         PASS
-  TEST 4 (error handling):  PASS
-
-Exitosos: 3
-Fallidos:  0
-Omitidos:  0
-
-[OK] TODAS LAS PRUEBAS EXITOSAS
-```
-
-Los resultados JSON se guardan en `PruebaVM/logs/`.
-
-### 4. Limpiar
-
-```bash
-./PruebaVM/Ubuntu/4_limpiar.sh
-```
-
-Elimina la VM y opcionalmente los logs.
-
-## Logs
-
-Los scripts generan logs detallados en:
-- `PruebaVM/logs/vm_creation_*.log` - Creación de VM
-- `PruebaVM/logs/installation_*.log` - Instalación y compilación
-- `PruebaVM/logs/test3_*.log` - Ejecución de tests
-- `PruebaVM/logs/test*_output.json` - Resultados JSON de cada test
-
-## Notas
-
-- **RAM:** 8 GB es el mínimo absoluto para compilación. Con menos RAM, PackageCompiler fallará con OOM.
-- **Tiempo total:** ~25-30 minutos para todo el proceso (creación + instalación + tests).
-- **Datasets:** El script usa datasets de `~/VerificadorVerificatum/datasets/` dentro de la VM.
-
----
-
-````
-
-
 
 
 
