@@ -73,36 +73,48 @@ julia --version
 
 **Importante:** Julia se instala nativamente en Windows (no en WSL).
 
-1. **Instalar juliaup** desde PowerShell (no necesita ser Administrador):
+1. **Instalar juliaup** (no necesita ser Administrador):
+   
+   Abrir **CMD** (Símbolo del sistema) o **PowerShell** y ejecutar:
    ```cmd
    winget install julia -s msstore
    ```
    
    O descargarlo manualmente desde: https://install.julialang.org
 
-2. **Instalar Julia 1.11.7** desde PowerShell:
+2. **Instalar Julia 1.11.7**:
+   
+   En **CMD** o **PowerShell**:
    ```cmd
    juliaup add 1.11.7
    juliaup default 1.11.7
    ```
 
 3. **Verificar instalación**:
+   
+   En **CMD** o **PowerShell**:
    ```cmd
    julia --version
    ```
    Debe mostrar: julia version 1.11.7
 
-4. **Instalar WSL 2** (necesario solo para Verificatum) desde PowerShell como Administrador:
+4. **Instalar WSL 2** (necesario solo para Verificatum):
+   
+   Abrir **CMD como Administrador** (clic derecho > "Ejecutar como administrador"):
    ```cmd
-   wsl --install
+   wsl --install -d Ubuntu
    ```
 
 5. **Reiniciar el equipo**
 
 6. **Habilitar rutas largas en Windows** (IMPORTANTE - evita errores ENAMETOOLONG):
+   
+   Abrir **CMD como Administrador**:
    ```cmd
-   rem Como Administrador
+   rem Habilitar soporte de rutas largas en Windows
    reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
+   
+   rem Configurar Git para rutas largas
    git config --global core.longpaths true
    ```
 
@@ -135,7 +147,14 @@ vmn -version
 
 **Importante:** Verificatum solo funciona en Linux, por lo que debe instalarse en WSL Ubuntu.
 
-1. **Abrir WSL Ubuntu** (escribir `wsl` en PowerShell o desde el menú de inicio)
+1. **Abrir WSL Ubuntu**:
+   
+   Desde **CMD** o **PowerShell**, ejecutar:
+   ```cmd
+   wsl
+   ```
+   
+   O buscar "Ubuntu" en el menú de inicio de Windows
 
 2. **Instalar dependencias y Verificatum** en WSL Ubuntu:
    ```bash
@@ -179,11 +198,15 @@ cd VerificadorVerificatum
 **Recomendación:** Usa una ruta corta como `C:\Verificador` para evitar problemas con el límite de 260 caracteres de Windows durante la compilación.
 
 1. **Instalar Git** (si no está instalado):
+   
+   Abrir **CMD** o **PowerShell** y ejecutar:
    ```cmd
    winget install --id Git.Git -e --source winget
    ```
 
-2. **Abrir PowerShell como Administrador** y habilitar rutas largas:
+2. **Habilitar rutas largas**:
+   
+   Abrir **CMD como Administrador** (clic derecho > "Ejecutar como administrador"):
    ```cmd
    rem Habilitar soporte de rutas largas en Windows
    reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
@@ -193,6 +216,8 @@ cd VerificadorVerificatum
    ```
 
 3. **Clonar el repositorio** en ruta corta:
+   
+   En **CMD** o **PowerShell** (no requiere Administrador):
    ```cmd
    rem Usar C:\Verificador en lugar de C:\Users\<usuario>\VerificadorVerificatum
    rem Esto evita problemas con rutas largas durante la compilación
@@ -224,7 +249,7 @@ cd ~/VerificadorVerificatum
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
 # Verificar que ShuffleProofs se instaló correctamente
-julia --project=. -e 'using ShuffleProofs; println("✓ ShuffleProofs cargado correctamente")'
+julia --project=. -e 'using ShuffleProofs; println("ShuffleProofs cargado correctamente")'
 ```
 
 **Nota:** Si aparece el error "Package JSON not found", ejecuta:
@@ -235,7 +260,7 @@ julia --project=. -e 'using Pkg; Pkg.add("JSON")'
 
 ### En Windows:
 
-Desde PowerShell, en la raíz del repositorio clonado:
+Abrir **PowerShell** (no requiere Administrador), en la raíz del repositorio clonado:
 
 ```powershell
 # Asegurarse de estar en el directorio correcto
@@ -245,7 +270,7 @@ cd C:\Verificador
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
 # Verificar que ShuffleProofs se instaló correctamente
-julia --project=. -e 'using ShuffleProofs; println("✓ ShuffleProofs cargado correctamente")'
+julia --project=. -e 'using ShuffleProofs; println("ShuffleProofs cargado correctamente")'
 ```
 
 **Nota:** Si aparece el error "Package JSON not found", ejecuta:
@@ -275,7 +300,7 @@ julia --project=. JuliaBuild/build_portable_app.jl
 
 ### En Windows:
 
-Desde PowerShell:
+Abrir **PowerShell** (no requiere Administrador):
 
 ```powershell
 # Asegurarse de estar en el directorio del repositorio
@@ -327,6 +352,8 @@ cd ~/VerificadorVerificatum/dist/VerificadorShuffleProofs
 ```
 
 ## En Windows:
+
+Abrir **PowerShell** o **CMD**:
 
 ### Verificar un dataset single-party (modo shuffle)
 
@@ -523,7 +550,7 @@ Este proyecto implementa protocolos de verificación para mixnets verificados p�
 2. Si no está instalado, seguir [Paso 2: Instalar Verificatum](#paso-2-instalar-verificatum)
 
 **Solución en Windows:**
-1. Abrir WSL Ubuntu: `wsl`
+1. Abrir **CMD** o **PowerShell** y ejecutar: `wsl`
 2. Verificar instalación: `vmn -version`
 3. Si no está instalado, instalar Verificatum dentro de WSL siguiendo [Paso 2](#paso-2-instalar-verificatum)
 4. Asegurarse de que el ejecutable se ejecuta desde WSL o que el verificador detecta WSL correctamente
@@ -534,7 +561,9 @@ Este proyecto implementa protocolos de verificación para mixnets verificados p�
 **Causa:** Windows tiene un límite de 260 caracteres para rutas de archivo (MAX_PATH).
 
 **Solución (Recomendada):**
-Usa una ruta más corta para el repositorio:
+Usa una ruta más corta para el repositorio.
+
+Abrir **CMD** o **PowerShell**:
 ```cmd
 rem En lugar de C:\Users\<usuario>\VerificadorVerificatum (37+ chars)
 rem Usa C:\Verificador (14 chars)
@@ -543,7 +572,8 @@ git clone https://github.com/soettam/VerificadorVerificatum.git Verificador
 ```
 
 **Solución alternativa (Habilitar rutas largas):**
-Como Administrador en PowerShell:
+
+Abrir **CMD como Administrador**:
 ```cmd
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
 git config --global core.longpaths true
@@ -569,6 +599,8 @@ julia --project=. -e 'using Pkg; Pkg.add("JSON")'
 ```
 
 **Solución en Windows:**
+
+Abrir **PowerShell**:
 ```powershell
 cd C:\Verificador
 julia --project=. -e "using Pkg; Pkg.add(`"JSON`")"
@@ -586,6 +618,8 @@ julia --project=. JuliaBuild/build_portable_app.jl
 ```
 
 **Solución en Windows:**
+
+Abrir **PowerShell**:
 ```powershell
 juliaup default 1.11.7
 cd C:\Verificador
@@ -597,7 +631,13 @@ julia --project=. JuliaBuild\build_portable_app.jl
 **Causa:** Git no está instalado en Windows.
 
 **Solución:**
-Descargar e instalar Git para Windows desde: https://git-scm.com/download/win
+
+Abrir **CMD** o **PowerShell**:
+```cmd
+winget install --id Git.Git -e --source winget
+```
+
+O descargar e instalar Git para Windows desde: https://git-scm.com/download/win
 
 ## Error ENOENT en Windows 10/11 (Julia/PackageCompiler)
 
@@ -615,16 +655,16 @@ Windows tiene un límite de 260 caracteres por ruta, lo que impide copiar archiv
 
 ---
 
-*** Solución (PowerShell como Administrador) ***
+**Solución (PowerShell como Administrador)**
 
-Ejecuta el siguiente comando:
+Abrir **PowerShell como Administrador** (clic derecho > "Ejecutar como administrador") y ejecutar:
 
 ```powershell
 New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
   -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
 ```
 
-Verifica que esté habilitado:
+Verificar que esté habilitado:
 
 ```powershell
 Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name LongPathsEnabled
@@ -736,7 +776,12 @@ Comandos de ejemplo para generar `der.rho` y `bas.h` desde `protInfo.xml` y el d
 
 **Importante:** Estos comandos deben ejecutarse desde WSL Ubuntu, ya que Verificatum solo está instalado allí.
 
-1. **Abrir WSL Ubuntu**: `wsl`
+1. **Abrir WSL Ubuntu**:
+   
+   Desde **CMD** o **PowerShell**, ejecutar:
+   ```cmd
+   wsl
+   ```
 
 2. **Ejecutar vmnv según el modo**:
 
