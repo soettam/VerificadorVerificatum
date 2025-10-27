@@ -55,7 +55,7 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 
 ```bash
 # Descargar e instalar juliaup (gestor de versiones de Julia)
-curl -fsSL https://install.julialang.org | sh
+curl -fsSL https://install.julialang.org | sh -s -- -y
 
 # Agregar Julia al PATH (reinicia la terminal después)
 source ~/.bashrc
@@ -128,8 +128,6 @@ Verificatum es necesario para extraer `der.rho` y las bases independientes (`bas
 # 1. Instalar dependencias del sistema
 sudo apt update
 sudo apt-get install --yes m4 cpp gcc make libtool automake autoconf libgmp-dev openjdk-21-jdk
-sudo apt install -y openssh-server
-sudo systemctl enable --now ssh
 
 # 2. Instalar Verificatum desde el directorio home
 cd ~
@@ -161,8 +159,6 @@ vmn -version
    # 1. Instalar dependencias del sistema
    sudo apt update
    sudo apt-get install --yes m4 cpp gcc make libtool automake autoconf libgmp-dev openjdk-21-jdk
-   sudo apt install -y openssh-server
-   sudo systemctl enable --now ssh
    
    # 2. Instalar Verificatum desde el directorio home
    cd ~
