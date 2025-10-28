@@ -76,10 +76,15 @@ function copytree(src::AbstractString, dest::AbstractString)
 end
 
 mixnet_src = joinpath(project_root, "mixnet", "verificatum-vmn-3.1.0")
+mixnet_home = joinpath(homedir(), "verificatum-vmn-3.1.0-full")
+
 if isdir(mixnet_src)
     copytree(mixnet_src, joinpath(resources_dir, "verificatum-vmn-3.1.0"))
+elseif isdir(mixnet_home)
+    copytree(mixnet_home, joinpath(resources_dir, "verificatum-vmn-3.1.0"))
+    println("[build] ✓ Verificatum copiado desde $(mixnet_home)")
 else
-    @warn "No se encontró mixnet/verificatum-vmn-3.1.0; el ejecutable dependerá de vmnv en el sistema"
+    @warn "No se encontró Verificatum en mixnet/verificatum-vmn-3.1.0 ni en ~/verificatum-vmn-3.1.0-full; el ejecutable dependerá de vmn en el sistema"
 end
 
 sample_dataset = joinpath(project_root, "test", "validation_sample", "verificatum")
@@ -177,4 +182,10 @@ else
     @warn "No se encontró README.md en la raíz del proyecto"
 end
 
-println("Aplicación empaquetada en: $app_dir")
+app_dir_abs = abspath(app_dir)
+println("\n" * "="^70)
+println("✓ Aplicación empaquetada exitosamente")
+println("="^70)
+println("Ubicación: $(app_dir_abs)")
+println("Ejecutable: $(joinpath(app_dir_abs, "bin", "verificador"))")
+println("="^70 * "\n")

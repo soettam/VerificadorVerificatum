@@ -37,6 +37,7 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 - **Julia 1.11.7** (instalado nativamente en el sistema operativo)
 - **Verificatum VMN 3.1.0** (en Ubuntu nativo, o en WSL para usuarios de Windows)
 - **Git** (para clonar el repositorio)
+- **g++** (compilador C++, requerido para PackageCompiler)
 
 **Hardware:**
 - **Memoria RAM:** Mínimo 8 GB **requeridos para compilación** (16 GB recomendado para datasets grandes)
@@ -54,17 +55,21 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 ### En Ubuntu:
 
 ```bash
-# Descargar e instalar juliaup (gestor de versiones de Julia)
+# 1. Instalar dependencias del sistema (requeridas para compilación con PackageCompiler)
+sudo apt update
+sudo apt-get install --yes gcc g++ make
+
+# 2. Descargar e instalar juliaup (gestor de versiones de Julia)
 curl -fsSL https://install.julialang.org | sh -s -- -y
 
-# Agregar Julia al PATH (reinicia la terminal después)
+# 3. Agregar Julia al PATH (reinicia la terminal después)
 source ~/.bashrc
 
-# Instalar Julia 1.11.7 (versión requerida para compilación)
+# 4. Instalar Julia 1.11.7 (versión requerida para compilación)
 juliaup add 1.11.7
 juliaup default 1.11.7
 
-# Verificar instalación
+# 5. Verificar instalación
 julia --version
 # Debe mostrar: julia version 1.11.7
 ```
@@ -125,9 +130,10 @@ Verificatum es necesario para extraer `der.rho` y las bases independientes (`bas
 ### En Ubuntu:
 
 ```bash
-# 1. Instalar dependencias del sistema
+# 1. Instalar dependencias adicionales de Verificatum
+# Nota: gcc y g++ ya deberían estar instalados del Paso 1
 sudo apt update
-sudo apt-get install --yes m4 cpp gcc make libtool automake autoconf libgmp-dev openjdk-21-jdk
+sudo apt-get install --yes m4 cpp libtool automake autoconf libgmp-dev openjdk-21-jdk
 
 # 2. Instalar Verificatum desde el directorio home
 cd ~
@@ -156,9 +162,9 @@ vmn -version
 
 2. **Instalar dependencias y Verificatum** en WSL Ubuntu:
    ```bash
-   # 1. Instalar dependencias del sistema
+   # 1. Instalar dependencias del sistema (incluye gcc/g++ para compilación)
    sudo apt update
-   sudo apt-get install --yes m4 cpp gcc make libtool automake autoconf libgmp-dev openjdk-21-jdk
+   sudo apt-get install --yes gcc g++ make m4 cpp libtool automake autoconf libgmp-dev openjdk-21-jdk
    
    # 2. Instalar Verificatum desde el directorio home
    cd ~
@@ -380,13 +386,21 @@ cd C:\Verificador\distwindows\VerificadorShuffleProofs
 
 El verificador genera un archivo JSON con los resultados en el directorio actual:
 
-**Archivo generado:** `chequeo_detallado_result.json`
+**Archivo generado:** `chequeo_detallado_result_<dataset>_<fechahora>.json`
+
+Donde:
+- `<dataset>`: Nombre del dataset verificado (ej: `onpe3`, `onpe100`)
+- `<fechahora>`: Timestamp en formato `YYYYMMDD_HHMMSS`
+
+**Ejemplo:** `chequeo_detallado_result_onpe3_20251028_163045.json`
 
 **Contenido:**
 - Parámetros de la verificación (ρ, generadores, semilla)
 - Desafíos de permutación y reencriptado
 - Resultados de cada chequeo (t₁, t₂, t₃, t₄, 𝐭̂, A, B, C, D, F)
 - Estado final: VÁLIDA o INVÁLIDA
+
+**Nota:** Cada ejecución genera un archivo JSON independiente, permitiendo comparar múltiples verificaciones del mismo o diferentes datasets.
 
 ---
 

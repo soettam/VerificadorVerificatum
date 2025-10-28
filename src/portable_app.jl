@@ -3,8 +3,20 @@ import ..ShuffleProofs
 using JSON
 using Printf
 using Base: Cmd
+using Dates
 
 const DEFAULT_RESULT_FILENAME = "chequeo_detallado_result.json"
+
+function generate_result_filename(dataset_path::AbstractString)
+    # Extraer nombre del dataset (último directorio de la ruta)
+    dataset_name = basename(abspath(dataset_path))
+    
+    # Generar timestamp en formato YYYYMMDD_HHMMSS
+    timestamp = Dates.format(now(), "yyyymmdd_HHMMSS")
+    
+    # Formato: chequeo_detallado_result_<dataset>_<fechahora>.json
+    return "chequeo_detallado_result_$(dataset_name)_$(timestamp).json"
+end
 
 function hexstring(bytes::AbstractVector{<:Unsigned})
     io = IOBuffer()
@@ -955,7 +967,8 @@ function cli_run(args::Vector{String})::Cint
         print_checks(result["checks"]["verificatum"])
     end
 
-    output_path = joinpath(pwd(), DEFAULT_RESULT_FILENAME)
+    output_filename = generate_result_filename(dataset_path)
+    output_path = joinpath(pwd(), output_filename)
     write_result(result, output_path)
 
     println("\nResultado guardado en ", output_path)
