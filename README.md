@@ -131,9 +131,9 @@ Verificatum es necesario para extraer `der.rho` y las bases independientes (`bas
 
 ```bash
 # 1. Instalar dependencias adicionales de Verificatum
-# Nota: gcc y g++ ya deberían estar instalados del Paso 1
+# Nota: gcc, g++ y make ya deberían estar instalados del Paso 1
 sudo apt update
-sudo apt-get install --yes m4 cpp libtool automake autoconf libgmp-dev openjdk-21-jdk
+sudo apt-get install --yes make m4 cpp libtool automake autoconf libgmp-dev openjdk-21-jdk
 
 # 2. Instalar Verificatum desde el directorio home
 cd ~
@@ -269,16 +269,16 @@ Abrir **PowerShell** (no requiere Administrador), en la raíz del repositorio cl
 cd C:\Verificador
 
 # Activar el entorno del proyecto e instalar dependencias
-julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. -e "using Pkg; Pkg.instantiate()"
 
 # Verificar que ShuffleProofs se instaló correctamente
-julia --project=. -e 'using ShuffleProofs; println("ShuffleProofs cargado correctamente")'
+julia --project=. -e "using ShuffleProofs; println(\"ShuffleProofs cargado correctamente\")"
 ```
 
 **Nota:** Si aparece el error "Package JSON not found", ejecuta:
 
 ```powershell
-julia --project=. -e "using Pkg; Pkg.add(`"JSON`")"
+julia --project=. -e "using Pkg; Pkg.add(\"JSON\")"
 ```
 
 ---
@@ -355,6 +355,8 @@ cd ~/VerificadorVerificatum/dist/VerificadorShuffleProofs
 
 ## En Windows:
 
+** REQUISITO IMPORTANTE:** Windows requiere **WSL 2 con Ubuntu** y **Verificatum instalado en WSL** para funcionar correctamente.
+
 Abrir **PowerShell** o **CMD**:
 
 ### Verificar un dataset single-party (modo shuffle)
@@ -380,7 +382,10 @@ cd C:\Verificador\distwindows\VerificadorShuffleProofs
 .\bin\verificador.exe .\resources\validation_sample\onpe3 -shuffle
 ```
 
-**Importante:** El verificador detecta automáticamente WSL y ejecuta `vmn` (instalado en WSL) cuando sea necesario.
+**Importante:** 
+- El verificador **requiere WSL 2 con Ubuntu** y **Verificatum instalado en WSL** para funcionar en Windows
+- Detecta automáticamente WSL y ejecuta `vmn` desde WSL cuando sea necesario
+- Si encuentras errores relacionados con `vmn`, verifica que WSL esté instalado y Verificatum configurado correctamente en Ubuntu dentro de WSL
 
 ## Salida del verificador
 
@@ -613,7 +618,7 @@ julia --project=. -e 'using Pkg; Pkg.add("JSON")'
 Abrir **PowerShell**:
 ```powershell
 cd C:\Verificador
-julia --project=. -e "using Pkg; Pkg.add(`"JSON`")"
+julia --project=. -e "using Pkg; Pkg.add(\"JSON\")"
 ```
 
 ## Error al compilar: "PackageCompiler version mismatch"
@@ -633,7 +638,7 @@ Abrir **PowerShell**:
 ```powershell
 juliaup default 1.11.7
 cd C:\Verificador
-julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. -e "using Pkg; Pkg.instantiate()"
 julia --project=. JuliaBuild\build_portable_app.jl
 ```
 

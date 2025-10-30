@@ -101,15 +101,16 @@ if isfile(readme_main)
     readme_content = read(readme_main, String)
     
     # Función para extraer una sección específica del markdown
-    function extract_section(content::String, section_title::String)
+    function extract_section(content::String, section_title::String, level::Int=1)
         lines = split(content, '\n')
         section_lines = String[]
         in_section = false
         in_code_block = false
+        header_prefix = "#" ^ level  # # para nivel 1, ## para nivel 2, etc.
         
         for line in lines
             # Limpiar el line de caracteres de retorno de carro
-            clean_line = strip(line, ['\r', '\n'])
+            clean_line = replace(line, '\r' => "", '\n' => "")
             
             # Detectar inicio/fin de bloque de código
             if startswith(clean_line, "```")
@@ -121,15 +122,27 @@ if isfile(readme_main)
             end
             
             # Si encontramos el encabezado que buscamos
-            if !in_code_block && clean_line == "# $section_title"
+            if !in_code_block && (clean_line == "$header_prefix $section_title" || clean_line == "$header_prefix$section_title")
                 in_section = true
                 push!(section_lines, line)
                 continue
             end
             
-            # Si estamos en la sección y encontramos otro encabezado de nivel 1
-            if in_section && !in_code_block && startswith(clean_line, "# ") && clean_line != "# $section_title"
-                break
+            # Si estamos en la sección y encontramos otro encabezado del mismo nivel o superior
+            if in_section && !in_code_block
+                # Detectar encabezados de nivel igual o superior
+                for check_level in 1:level
+                    check_prefix = "#" ^ check_level
+                    if startswith(clean_line, "$check_prefix ") && 
+                       clean_line != "$header_prefix $section_title" && 
+                       clean_line != "$header_prefix$section_title"
+                        in_section = false
+                        break
+                    end
+                end
+                if !in_section
+                    break
+                end
             end
             
             # Si estamos en la sección, agregar la línea
@@ -143,9 +156,10 @@ if isfile(readme_main)
     end
     
     # Extraer las secciones requeridas
-    section_ejecucion = extract_section(readme_content, "Ejecución del verificador")
-    section_que_verifica = extract_section(readme_content, "Qué verifica este software")
-    section_estructura = extract_section(readme_content, "Estructura de archivos del dataset")
+    section_wsl_verificatum = extract_section(readme_content, "Paso 2: Instalar Verificatum", 2)
+    section_ejecucion = extract_section(readme_content, "Ejecución del verificador", 1)
+    section_que_verifica = extract_section(readme_content, "Qué verifica este software", 1)
+    section_estructura = extract_section(readme_content, "Estructura de archivos del dataset", 1)
     
     # Generar el README-portable.md
     portable_readme_path = joinpath(app_dir, "README-portable.md")
@@ -156,6 +170,36 @@ if isfile(readme_main)
         println(io, "")
         println(io, "---")
         println(io, "")
+        
+        if !isempty(section_wsl_verificatum)
+            println(io, "# Requisitos para Windows")
+            println(io, "")
+            println(io, "**⚠️ IMPORTANTE:** Si estás usando Windows, necesitas tener instalado y configurado:")
+            println(io, "- **WSL 2 con Ubuntu**")
+            println(io, "- **Verificatum instalado en WSL**")
+            println(io, "")
+            println(io, "El verificador portable incluye Julia y todas las dependencias necesarias, **excepto Verificatum**, que debe estar instalado en WSL (para usuarios de Windows).")
+            println(io, "")
+            println(io, "## Instalación de WSL 2 con Ubuntu")
+            println(io, "")
+            println(io, "Si aún no tienes WSL instalado:")
+            println(io, "")
+            println(io, "1. **Instalar WSL 2**:")
+            println(io, "   ")
+            println(io, "   Abrir **CMD como Administrador** (clic derecho > \"Ejecutar como administrador\"):")
+            println(io, "   ```cmd")
+            println(io, "   wsl --install -d Ubuntu")
+            println(io, "   ```")
+            println(io, "")
+            println(io, "2. **Reiniciar el equipo**")
+            println(io, "")
+            println(io, "3. **Configurar Ubuntu**: Al reiniciar, Ubuntu se abrirá automáticamente para crear tu usuario y contraseña.")
+            println(io, "")
+            println(io, section_wsl_verificatum)
+            println(io, "")
+            println(io, "---")
+            println(io, "")
+        end
         
         if !isempty(section_ejecucion)
             println(io, section_ejecucion)
