@@ -48,6 +48,33 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 
 ---
 
+# Requisitos para ejecutable portable en Windows
+
+**IMPORTANTE:** Si estás usando el ejecutable portable en Windows, necesitas tener instalado y configurado:
+- **WSL 2 con Ubuntu**
+- **Verificatum instalado en WSL**
+
+El verificador portable incluye Julia y todas las dependencias necesarias, **excepto Verificatum**, que debe estar instalado en WSL (para usuarios de Windows).
+
+## Instalación de WSL 2 para ejecutable portable
+
+Si aún no tienes WSL instalado:
+
+1. **Instalar WSL 2**:
+   
+   Abrir **CMD como Administrador** (clic derecho > "Ejecutar como administrador"):
+   ```cmd
+   wsl --install -d Ubuntu
+   ```
+
+2. **Reiniciar el equipo**
+
+3. **Configurar Ubuntu**: Al reiniciar, Ubuntu se abrirá automáticamente para crear tu usuario y contraseña.
+
+Después de instalar WSL, continúa con la instalación de Verificatum en la sección [Paso 2: Instalar Verificatum](#paso-2-instalar-verificatum) (subsección "En Windows").
+
+---
+
 # Instalación paso a paso
 
 ## Paso 1: Instalar Julia
