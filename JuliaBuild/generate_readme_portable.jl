@@ -1,12 +1,21 @@
 #!/usr/bin/env julia
 
-project_root = normpath(joinpath(@__DIR__, ".."))
-dist_root = joinpath(project_root, Sys.iswindows() ? "distwindows" : "dist")
-app_dir = joinpath(dist_root, "VerificadorShuffleProofs")
+"""
+    generate_portable_readme(app_dir::String, project_root::String)
 
-# Generar README-portable.md extrayendo secciones específicas del README.md principal
-readme_main = joinpath(project_root, "README.md")
-if isfile(readme_main)
+Genera el README-portable.md extrayendo secciones específicas del README.md principal.
+Esta función puede ser llamada desde build_portable_app.jl o ejecutada de forma independiente.
+
+# Argumentos
+- `app_dir`: Directorio donde se generará el README-portable.md
+- `project_root`: Raíz del proyecto donde está el README.md original
+"""
+function generate_portable_readme(app_dir::String, project_root::String)
+    readme_main = joinpath(project_root, "README.md")
+    if !isfile(readme_main)
+        @warn "No se encontró README.md en la raíz del proyecto: $readme_main"
+        return false
+    end
     println("[build] Generando README-portable.md desde README.md...")
     
     # Leer el README principal
@@ -139,6 +148,21 @@ if isfile(readme_main)
     end
     
     println("[build] README-portable.md generado exitosamente en: $portable_readme_path")
-else
-    @warn "No se encontró README.md en la raíz del proyecto"
+    return true
+end
+
+# Si se ejecuta como script independiente
+if abspath(PROGRAM_FILE) == @__FILE__
+    project_root = normpath(joinpath(@__DIR__, ".."))
+    dist_root = joinpath(project_root, Sys.iswindows() ? "distwindows" : "dist")
+    app_dir = joinpath(dist_root, "VerificadorShuffleProofs")
+    
+    if !isdir(app_dir)
+        @error "El directorio de la aplicación no existe: $app_dir"
+        @info "Ejecuta build_portable_app.jl primero para crear la aplicación"
+        exit(1)
+    end
+    
+    success = generate_portable_readme(app_dir, project_root)
+    exit(success ? 0 : 1)
 end
