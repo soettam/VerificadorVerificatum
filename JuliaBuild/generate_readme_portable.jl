@@ -102,8 +102,6 @@ function generate_portable_readme(app_dir::String, project_root::String)
         if !isempty(section_requisitos_portable)
             println(io, section_requisitos_portable)
             println(io, "")
-            println(io, "---")
-            println(io, "")
         end
         
         if !isempty(section_wsl_verificatum)
