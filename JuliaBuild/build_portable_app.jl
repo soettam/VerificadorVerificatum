@@ -75,17 +75,9 @@ function copytree(src::AbstractString, dest::AbstractString)
     end
 end
 
-mixnet_src = joinpath(project_root, "mixnet", "verificatum-vmn-3.1.0")
-mixnet_home = joinpath(homedir(), "verificatum-vmn-3.1.0-full")
-
-if isdir(mixnet_src)
-    copytree(mixnet_src, joinpath(resources_dir, "verificatum-vmn-3.1.0"))
-elseif isdir(mixnet_home)
-    copytree(mixnet_home, joinpath(resources_dir, "verificatum-vmn-3.1.0"))
-    println("[build] ✓ Verificatum copiado desde $(mixnet_home)")
-else
-    @warn "No se encontró Verificatum en mixnet/verificatum-vmn-3.1.0 ni en ~/verificatum-vmn-3.1.0-full; el ejecutable dependerá de vmn en el sistema"
-end
+# El verificador usa vmn del sistema (instalado en /usr/local/bin/vmn o disponible en PATH)
+# No se empaqueta Verificatum en el ejecutable portable
+println("[build] ℹ El ejecutable usará vmn del sistema")
 
 sample_dataset = joinpath(project_root, "test", "validation_sample", "verificatum")
 if isdir(sample_dataset)

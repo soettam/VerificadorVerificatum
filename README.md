@@ -109,6 +109,11 @@ julia --version
    ```cmd
    wsl --install -d Ubuntu
    ```
+   
+   **Nota importante:** Si es la primera vez que instalas WSL, el comando anterior solo instalará los componentes de WSL pero no la distribución Ubuntu. Después de reiniciar el equipo, ejecuta nuevamente el mismo comando para instalar Ubuntu:
+   ```cmd
+   wsl --install -d Ubuntu
+   ```
 
 5. **Reiniciar el equipo**
 
@@ -116,12 +121,13 @@ julia --version
    
    Abrir **CMD como Administrador**:
    ```cmd
-   rem Habilitar soporte de rutas largas en Windows
+
    reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
    
-   rem Configurar Git para rutas largas
    git config --global core.longpaths true
    ```
+   
+   **Nota:** Si el comando `git config` falla porque Git no está instalado, primero instala Git siguiendo las instrucciones del [Paso 3: Clonar este repositorio](#paso-3-clonar-este-repositorio) (sección Windows, punto 1).
 
 ## Paso 2: Instalar Verificatum
 

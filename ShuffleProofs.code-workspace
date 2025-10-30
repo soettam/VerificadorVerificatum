@@ -5,6 +5,10 @@
     },
     {
       "path": "verification_workspace"
+    },
+    {
+      "name": "VerificadorJuliaBuild_Pruebas",
+      "path": "PruebaVM/VerificadorJuliaBuild_Pruebas"
     }
   ],
   "settings": {
