@@ -295,7 +295,7 @@ julia --project=. -e 'using Pkg; Pkg.add("JSON")'
 
 ### En Windows:
 
-Abrir **PowerShell** (no requiere Administrador), en la raíz del repositorio clonado:
+Abrir **PowerShell o CMD** (no requiere Administrador), en la raíz del repositorio clonado:
 
 ```powershell
 # Asegurarse de estar en el directorio correcto
@@ -305,7 +305,7 @@ cd C:\Verificador
 julia --project=. -e "using Pkg; Pkg.instantiate()"
 
 # Verificar que ShuffleProofs se instaló correctamente
-julia --project=. -e "using ShuffleProofs; println(\"ShuffleProofs cargado correctamente\")"
+julia --project=. -e "using ShuffleProofs"
 ```
 
 **Nota:** Si aparece el error "Package JSON not found", ejecuta:
