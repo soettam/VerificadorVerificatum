@@ -12,6 +12,7 @@ garantizando su autenticidad e integridad.
 - Verificación de firmas RSA-SHA256
 - Validación de archivos .bt (ByteTree) contra sus firmas .sig
 - Soporte para múltiples parties (servidores de la Mix-Net)
+- Parsing y serialización de formato ByteTree de Verificatum
 
 # Referencias
 
@@ -27,8 +28,12 @@ using CryptoGroups
 using Printf
 using OpenSSL_jll
 
+# Importar módulo ByteTree
+include("bytetree.jl")
+using .ByteTreeModule
+
 export verify_signature, load_public_keys, verify_proof_files, SignatureVerificationResult,
-       verify_rsa_sha256_signature, hex2bytes
+       verify_rsa_sha256_signature, hex2bytes, verify_verificatum_signature
 
 """
     SignatureVerificationResult
@@ -143,7 +148,7 @@ En Verificatum, las llaves públicas pueden estar en:
 - El directorio dir/.publicKey de cada party
 """
 function extract_public_keys_from_protinfo(protinfo_file::String)
-    @info "Extrayendo llaves públicas desde: $protinfo_file"
+    @info "Extrayendo llaves públicas RSA desde: $protinfo_file"
     
     if !isfile(protinfo_file)
         error("Archivo protInfo.xml no encontrado: $protinfo_file")
@@ -162,14 +167,118 @@ function extract_public_keys_from_protinfo(protinfo_file::String)
     nopart = parse(Int, nodecontent(nopart_node))
     @info "Número de parties: $nopart"
     
-    # TODO: Buscar llaves públicas en el XML
-    # En Verificatum, las llaves pueden estar en diferentes lugares
-    
-    # Por ahora retornamos vector vacío
     keys = PublicKeyInfo[]
     
-    @warn "Extracción de llaves públicas desde protInfo.xml no implementada completamente"
-    @warn "Las llaves públicas pueden estar en archivos separados"
+    # Buscar cada party
+    parties = findall("//party", root)
+    
+    for (party_id, party_node) in enumerate(parties)
+        # Buscar el campo <pkey> que contiene la llave RSA
+        pkey_node = findfirst(".//pkey", party_node)
+        
+        if pkey_node === nothing
+            @debug "Party $party_id: No se encontró campo <pkey>"
+            continue
+        end
+        
+        pkey_content = nodecontent(pkey_node)
+        
+        # Verificar que sea una llave RSA de firma
+        if !occursin("SignaturePKeyHeuristic", pkey_content)
+            @debug "Party $party_id: <pkey> no es SignaturePKeyHeuristic"
+            continue
+        end
+        
+        # Formato: "com.verificatum.crypto.SignaturePKeyHeuristic(RSA, bitlength=2048)::<hex_bytetree>"
+        parts = split(pkey_content, "::")
+        
+        if length(parts) < 2
+            @warn "Party $party_id: Formato de <pkey> inválido"
+            continue
+        end
+        
+        hex_bytetree = strip(parts[2])
+        
+        try
+            # Convertir hex a bytes (convertir SubString a String)
+            bytetree_bytes = hex2bytes(String(hex_bytetree))
+            
+            # Parsear el ByteTree
+            tree, _ = parse_bytetree(bytetree_bytes)
+            
+            # El ByteTree tiene estructura:
+            # Node[
+            #   Leaf("com.verificatum.crypto.SignaturePKeyHeuristic"),
+            #   Node[
+            #     Leaf(<llave_DER>),
+            #     Leaf(<metadata>)
+            #   ]
+            # ]
+            
+            if !(tree isa ByteTreeNode)
+                @warn "Party $party_id: ByteTree no es un nodo"
+                continue
+            end
+            
+            if length(tree.children) < 2
+                @warn "Party $party_id: ByteTree no tiene suficientes hijos"
+                continue
+            end
+            
+            # El segundo hijo es un nodo que contiene la llave
+            key_node = tree.children[2]
+            
+            if !(key_node isa ByteTreeNode)
+                @warn "Party $party_id: Segundo hijo no es un nodo"
+                continue
+            end
+            
+            if length(key_node.children) < 1
+                @warn "Party $party_id: Nodo de llave vacío"
+                continue
+            end
+            
+            # El primer hijo del nodo contiene la llave RSA en formato DER
+            key_leaf = key_node.children[1]
+            
+            if !(key_leaf isa ByteTreeLeaf)
+                @warn "Party $party_id: Llave no es un leaf"
+                continue
+            end
+            
+            # La llave DER está embebida en este leaf
+            # Buscar el inicio de la llave DER (secuencia 0x30 0x82)
+            key_data = key_leaf.data
+            der_start = 0
+            
+            for i in 1:length(key_data)-1
+                if key_data[i] == 0x30 && key_data[i+1] == 0x82
+                    der_start = i
+                    break
+                end
+            end
+            
+            if der_start == 0
+                @warn "Party $party_id: No se encontró inicio de llave DER"
+                continue
+            end
+            
+            # Extraer la llave DER
+            key_der = key_data[der_start:end]
+            key_hex = bytes2hex(key_der)
+            
+            push!(keys, PublicKeyInfo(party_id, key_hex, 2048))
+            @info "✓ Party $party_id: Llave RSA extraída ($(length(key_der)) bytes DER)"
+            
+        catch e
+            @warn "Party $party_id: Error extrayendo llave" exception=e
+            continue
+        end
+    end
+    
+    if isempty(keys)
+        @warn "No se pudieron extraer llaves RSA del protInfo.xml"
+    end
     
     return keys
 end
@@ -226,10 +335,10 @@ Esta es una implementación stub. La verificación real requiere:
 3. Comparar el hash SHA-256 de los datos con el hash desencriptado
 """
 function verify_rsa_sha256_signature(data::Vector{UInt8}, signature::Vector{UInt8}, 
-                                     public_key_hex::String)
+                                     public_key_hex::String; double_hash::Bool=false)
     # Convertir hex a bytes y llamar al método base
     public_key_der = hex2bytes(public_key_hex)
-    return verify_rsa_sha256_signature(public_key_der, data, signature)
+    return verify_rsa_sha256_signature(public_key_der, data, signature, double_hash=double_hash)
 end
 
 """
@@ -247,16 +356,13 @@ Verifica una firma RSA-2048 con SHA-256 usando OpenSSL.
 - `Bool`: true si la firma es válida, false en caso contrario
 """
 function verify_rsa_sha256_signature(public_key_der::Vector{UInt8}, data::Vector{UInt8}, 
-                                     signature::Vector{UInt8})
-    # IMPORTANTE: Verificatum hace DOBLE HASHING
+                                     signature::Vector{UInt8}; double_hash::Bool=false)
+    # Si double_hash=true: Verificatum hace DOBLE HASHING
     # signDigest(SHA-256(data)) donde signDigest usa "SHA256withRSA" que hace SHA-256 de nuevo
     # Es decir: firma = RSA_sign(SHA-256(SHA-256(data)))
     #
-    # Para verificar, necesitamos usar EVP_DigestVerify con SHA-256 Y pasar el SHA-256(data)
-    # OpenSSL hará el segundo SHA-256 automáticamente con "SHA256withRSA"
-    
-    # Calcular SHA-256 del data (primer hash - esto es lo que Verificatum pasa a signDigest)
-    first_digest = sha256(data)
+    # Si double_hash=false: Firma estándar OpenSSL
+    # firma = RSA_sign(SHA-256(data))
     
     try
         # La llave pública ya está en formato DER, no necesita conversión
@@ -303,12 +409,19 @@ function verify_rsa_sha256_signature(public_key_der::Vector{UInt8}, data::Vector
             return false
         end
         
-        # Procesar el primer digest (no los datos originales)
-        # Verificatum firma SHA-256(SHA-256(data)), así que pasamos SHA-256(data)
-        # y EVP_DigestVerify aplicará el segundo SHA-256
-        ret = ccall((:EVP_DigestVerifyUpdate, libcrypto), Cint,
-                   (Ptr{Cvoid}, Ptr{UInt8}, Csize_t),
-                   ctx, first_digest, length(first_digest))
+        # Determinar qué datos procesar
+        if double_hash
+            # Verificatum: Pasar SHA-256(data) y OpenSSL hará el segundo SHA-256
+            first_digest = sha256(data)
+            ret = ccall((:EVP_DigestVerifyUpdate, libcrypto), Cint,
+                       (Ptr{Cvoid}, Ptr{UInt8}, Csize_t),
+                       ctx, first_digest, length(first_digest))
+        else
+            # Firma estándar: Pasar datos originales y OpenSSL hará SHA-256
+            ret = ccall((:EVP_DigestVerifyUpdate, libcrypto), Cint,
+                       (Ptr{Cvoid}, Ptr{UInt8}, Csize_t),
+                       ctx, data, length(data))
+        end
         
         if ret != 1
             ccall((:EVP_MD_CTX_free, libcrypto), Cvoid, (Ptr{Cvoid},), ctx)
@@ -631,6 +744,129 @@ function load_public_keys(dataset_dir::String)
     
     @info "Total de llaves públicas cargadas: $(length(keys))"
     return keys
+end
+
+# ==================== Verificación de Firmas Verificatum con ByteTree ====================
+
+"""
+    verify_verificatum_signature(
+        public_key_der::Vector{UInt8},
+        data::Vector{UInt8},
+        signature::Vector{UInt8},
+        party_id::Int,
+        message_label::String
+    ) -> Bool
+
+Verifica una firma RSA de Verificatum del BulletinBoard.
+
+Verificatum NO firma el contenido directamente, sino un ByteTreeContainer que incluye:
+1. Un prefijo con el party_id y el label del mensaje: "party_id/message_label"
+2. El contenido del archivo
+
+Este método reconstruye el fullMessage exactamente como Verificatum lo hace:
+```
+fullMessage = ByteTreeContainer(
+    ByteTree("party_id/message_label"),
+    ByteTree(data)
+)
+```
+
+Luego aplica el esquema de doble hashing de Verificatum:
+```
+digest1 = SHA-256(serialize(fullMessage))
+firma = RSA_sign_with_SHA256(digest1)  # RSA con SHA-256 interno
+```
+
+# Argumentos
+- `public_key_der`: Llave pública RSA en formato DER (X.509)
+- `data`: Contenido del archivo que fue firmado
+- `signature`: Firma RSA a verificar
+- `party_id`: ID del party que firmó (1, 2, 3, ...)
+- `message_label`: Label del mensaje (ej: "PublicKey", "Ciphertext", "shutdown_first_round")
+
+# Retorna
+- `Bool`: true si la firma es válida, false en caso contrario
+
+# Ejemplo
+```julia
+# Verificar firma de PublicKey del party 3
+public_key_content = read("decrypt/dir/BullBoard.../3/.../PublicKey")
+signature = read("decrypt/dir/BullBoard.../3/.../PublicKey.sig.3")
+public_key_rsa = extract_public_key_from_protinfo(protInfo, 3)
+
+valid = verify_verificatum_signature(
+    public_key_rsa,
+    public_key_content,
+    signature,
+    3,
+    "PublicKey"
+)
+```
+
+# Referencias
+- BullBoardBasicHTTP.java línea 563-598: fullMessage construction
+- SignatureSKeyHeuristic.java línea 143-149: signDigest with double hashing
+"""
+function verify_verificatum_signature(
+    public_key_der::Vector{UInt8},
+    data::Vector{UInt8},
+    signature::Vector{UInt8},
+    party_id::Int,
+    message_label::String
+)::Bool
+    # 1. Construir party prefix: "party_id/message_label"
+    party_prefix = string(party_id) * "/" * message_label
+    prefix_bytes = Vector{UInt8}(party_prefix)
+    
+    @debug "Verificando firma Verificatum" party_id message_label prefix=party_prefix
+    
+    # 2. Construir ByteTreeContainer según esquema de Verificatum
+    #    fullMessage = ByteTreeContainer(ByteTree(prefix), ByteTree(data))
+    prefix_leaf = create_bytetree_leaf(prefix_bytes)
+    data_leaf = create_bytetree_leaf(data)
+    full_message = bytetree_container(prefix_leaf, data_leaf)
+    
+    # 3. Serializar el ByteTreeContainer
+    serialized = serialize_bytetree(full_message)
+    
+    @debug "ByteTree construido" prefix_size=length(prefix_bytes) data_size=length(data) 
+           serialized_size=length(serialized)
+    
+    # 4. Verificar con RSA usando doble hashing Verificatum
+    #    La función verify_rsa_sha256_signature con double_hash=true hará:
+    #    - Primer SHA-256: digest1 = SHA-256(serialized)
+    #    - Segundo SHA-256: digest2 = SHA-256(digest1) (dentro de EVP_DigestVerify)
+    result = verify_rsa_sha256_signature(public_key_der, serialized, signature, double_hash=true)
+    
+    if result
+        @debug "✓ Firma Verificatum válida" party_id message_label
+    else
+        @debug "✗ Firma Verificatum inválida" party_id message_label
+    end
+    
+    return result
+end
+
+"""
+    verify_verificatum_signature(
+        public_key_hex::String,
+        data::Vector{UInt8},
+        signature::Vector{UInt8},
+        party_id::Int,
+        message_label::String
+    ) -> Bool
+
+Sobrecarga que acepta llave pública en formato hexadecimal.
+"""
+function verify_verificatum_signature(
+    public_key_hex::String,
+    data::Vector{UInt8},
+    signature::Vector{UInt8},
+    party_id::Int,
+    message_label::String
+)::Bool
+    public_key_der = hex2bytes(public_key_hex)
+    return verify_verificatum_signature(public_key_der, data, signature, party_id, message_label)
 end
 
 end # module SignatureVerifier
