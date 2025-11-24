@@ -196,6 +196,40 @@ Donde:
 
 **Nota:** Cada ejecución genera un archivo JSON independiente, permitiendo comparar múltiples verificaciones del mismo o diferentes datasets.
 
+## Verificador de Firmas RSA
+
+El verificador también incluye un ejecutable independiente para verificar firmas RSA-2048 en formato ByteTree según el protocolo Verificatum BulletinBoard.
+
+### Uso del verificador de firmas
+
+**Sintaxis:**
+```bash
+verificar_firmas <directorio_dataset> [--quiet]
+```
+
+**Ejemplos:**
+
+```bash
+cd ~/VerificadorVerificatum
+
+# Verificar todas las firmas de un dataset (modo verbose)
+./dist/VerificadorShuffleProofs/bin/verificar_firmas ./datasets/onpedecrypt
+
+# Modo silencioso (solo muestra resumen)
+./dist/VerificadorShuffleProofs/bin/verificar_firmas ./datasets/onpe100 --quiet
+
+# Mostrar ayuda
+./dist/VerificadorShuffleProofs/bin/verificar_firmas --help
+```
+
+### Códigos de salida
+
+| Código | Significado |
+|--------|-------------|
+| `0` | Éxito total: todas las firmas válidas |
+| `1` | Fallo: ninguna firma válida o error fatal |
+| `2` | Éxito parcial: algunas firmas válidas |
+
 ---
 
 # Solución de problemas

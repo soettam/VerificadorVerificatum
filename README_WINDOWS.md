@@ -290,6 +290,32 @@ Donde:
 
 **Nota:** Cada ejecución genera un archivo JSON independiente, permitiendo comparar múltiples verificaciones del mismo o diferentes datasets.
 
+## Verificador de Firmas RSA
+
+El verificador también incluye un ejecutable independiente para verificar firmas RSA-2048 en formato ByteTree según el protocolo Verificatum BulletinBoard.
+
+### Uso del verificador de firmas
+
+**Sintaxis:**
+```powershell
+verificar_firmas.exe <directorio_dataset> [--quiet]
+```
+
+**Ejemplos:**
+
+```powershell
+cd C:\Verificador
+
+# Verificar todas las firmas de un dataset (modo verbose)
+.\distwindows\VerificadorShuffleProofs\bin\verificar_firmas.exe .\datasets\onpedecrypt
+
+# Modo silencioso (solo muestra resumen)
+.\distwindows\VerificadorShuffleProofs\bin\verificar_firmas.exe .\datasets\onpe100 --quiet
+
+# Mostrar ayuda
+.\distwindows\VerificadorShuffleProofs\bin\verificar_firmas.exe --help
+```
+
 ---
 
 # Solución de problemas

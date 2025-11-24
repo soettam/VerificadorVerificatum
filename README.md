@@ -9,6 +9,7 @@ Este documento describe en detalle qué verifica el software, la estructura de d
 1. [Qué verifica este software](#qué-verifica-este-software)
 2. [Estructura de archivos del dataset](#estructura-de-archivos-del-dataset)
 3. [Referencias](#referencias)
+4. [Verificación de Firmas RSA con ByteTree](#verificación-de-firmas-rsa-con-bytetree)
 
 ---
 
@@ -205,3 +206,157 @@ $$F^v \cdot F' = \text{Enc}_{pk}(1, -k_F) \cdot \prod_i (w_i')^{k_{E,i}}$$
 
 **Versión:** 2025-11-05  
 **Documento:** README_VERIFICACION.md
+
+---
+
+# Verificación de Firmas RSA con ByteTree
+
+Este verificador también implementa la verificación de firmas digitales RSA-2048 sobre el formato ByteTree utilizado por Verificatum para garantizar la integridad de los datos publicados en el BulletinBoard.
+
+## Concepto de verificación de firmas
+
+La verificación de firmas RSA en Verificatum sigue el esquema estándar de firma digital, pero adaptado al formato de serialización ByteTree y al protocolo de publicación del BulletinBoard:
+
+### Pseudocódigo conceptual
+
+```
+Para cada archivo firmado en httproot/:
+  1. Leer protInfo.xml → Extraer RSA public key (formato ByteTree embebido en XML)
+  2. Leer archivo.sig.1 → Parsear ByteTree → Obtener signature (256 bytes)
+  3. Leer archivo → Parsear ByteTree → Obtener message
+  
+  4. Construir fullMessage según protocolo Verificatum:
+     party_prefix = "party_id/path/to/file"
+     fullMessage = ByteTreeNode([
+       ByteTreeLeaf(party_prefix),
+       message
+     ])
+  
+  5. Serializar fullMessage → bytes
+  
+  6. Verificar firma RSA:
+     hash1 = SHA256(fullMessage_bytes)
+     hash2 = SHA256(hash1)              # Doble hashing (Verificatum)
+     signature_valid = RSA_verify(hash2, signature, public_key)
+```
+
+### Comandos clave implementados
+
+**Extracción de llave pública:**
+```julia
+# src/signature_verifier.jl
+public_keys = extract_public_keys_from_protinfo("protInfo.xml")
+key_hex = public_keys[1].key_hex  # Formato hexadecimal X.509/PKCS#1
+```
+
+**Parseo de ByteTree:**
+```julia
+# src/bytetree.jl
+sig_tree, _ = parse_bytetree(sig_bytes)
+signature = sig_tree.data  # 256 bytes para RSA-2048
+
+message_tree, _ = parse_bytetree(message_bytes)
+```
+
+**Construcción del mensaje completo:**
+```julia
+# Protocolo específico de Verificatum BulletinBoard
+prefix_tree = ByteTreeLeaf(Vector{UInt8}(party_prefix))
+full_message = ByteTreeNode([prefix_tree, message_tree])
+serialized = serialize_bytetree(full_message)
+```
+
+**Verificación RSA con doble hash:**
+```julia
+# src/signature_verifier.jl
+is_valid = verify_rsa_sha256_signature(
+    serialized, 
+    signature, 
+    key_hex, 
+    double_hash=true  # SHA256(SHA256(message))
+)
+```
+
+## Por qué no es posible desde línea de comandos
+
+La verificación de firmas RSA en el formato Verificatum **no puede realizarse directamente con herramientas estándar** como `openssl` por las siguientes razones:
+
+1. **Formato ByteTree propietario:**
+   - Los archivos están en formato ByteTree (estructura recursiva tipo TLV)
+   - No hay herramienta estándar para parsear ByteTree desde CLI
+   - Requiere implementación específica del parser (`src/bytetree.jl`)
+
+2. **Construcción del mensaje según protocolo:**
+   - El mensaje firmado no es el archivo directo, sino una construcción específica:
+     ```
+     fullMessage = ByteTreeNode(party_prefix + original_message)
+     ```
+   - Este protocolo es único de Verificatum y no está documentado en estándares públicos
+
+3. **Doble hashing SHA-256:**
+   - Verificatum usa `SHA256(SHA256(message))` en lugar de hash simple
+   - OpenSSL por defecto hace hash simple: `openssl dgst -sha256`
+   - No hay forma directa de especificar doble hash en OpenSSL para verificación
+
+4. **Formato de clave pública:**
+   - La clave RSA está embebida en XML como ByteTree hexadecimal
+   - Requiere extracción y conversión a formato X.509/PKCS#1 estándar
+   - OpenSSL necesitaría la clave en formato PEM/DER preprocesado
+
+5. **Curvas elípticas y grupos criptográficos:**
+   - El verificador también maneja operaciones sobre curvas elípticas (ElGamal)
+   - Requiere aritmética de grupo sobre curvas específicas (P-256, etc.)
+   - No hay soporte CLI estándar para estas operaciones algebraicas
+
+### Ejemplo de limitación de OpenSSL
+
+Intentar verificar directamente con OpenSSL **fallaría**:
+
+```bash
+# Esto NO funciona porque:
+openssl dgst -sha256 -verify pubkey.pem -signature archivo.sig.1 archivo
+
+# Problemas:
+# 1. archivo.sig.1 está en ByteTree, no es firma raw
+# 2. archivo está en ByteTree, no es el mensaje real
+# 3. Falta el party_prefix en el mensaje
+# 4. Solo hace un hash, no doble hash
+# 5. pubkey.pem no existe, está embebido en protInfo.xml
+```
+
+### Solución implementada
+
+Por estas razones, se crearon módulos especializados en Julia:
+
+- **`src/bytetree.jl`**: Parser completo de ByteTree (leaf, node, recursivo)
+- **`src/signature_verifier.jl`**: Verificación RSA con doble SHA-256
+- **`src/verificar_firmas.jl`**: Orquestación del proceso completo
+- **`JuliaBuild/verificar_firmas.jl`**: Script CLI para verificación masiva
+
+Estos módulos implementan:
+- Parseo de estructura ByteTree recursiva
+- Extracción de llaves RSA desde XML con ByteTree embebido
+- Construcción del `fullMessage` según protocolo Verificatum
+- Doble hashing SHA-256
+- Verificación RSA-2048 sobre el hash resultante
+- Soporte para curvas elípticas y aritmética de grupos (ElGamal)
+
+### Uso del verificador
+
+```bash
+# Verificar todas las firmas de un dataset
+./dist/VerificadorShuffleProofs/bin/verificar_firmas datasets/onpedecrypt
+
+# Salida:
+# Total de archivos analizados: 15
+# [OK]   Firmas válidas:        15
+# [FAIL] Firmas inválidas:      0
+# Tasa de éxito: 100.0%
+```
+
+Para más detalles técnicos, consultar:
+- **Documentación completa:** `docs/VERIFICACION_FIRMAS_BYTETREE.md`
+- **Código ByteTree:** `src/bytetree.jl`
+- **Código verificación:** `src/signature_verifier.jl`
+
+---

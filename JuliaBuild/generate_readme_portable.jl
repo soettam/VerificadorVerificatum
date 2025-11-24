@@ -11,12 +11,29 @@ Esta función puede ser llamada desde build_portable_app.jl o ejecutada de forma
 - `project_root`: Raíz del proyecto donde está el README.md original
 """
 function generate_portable_readme(app_dir::String, project_root::String)
-    readme_main = joinpath(project_root, "README.md")
-    if !isfile(readme_main)
-        @warn "No se encontró README.md en la raíz del proyecto: $readme_main"
-        return false
+    # Detectar el sistema operativo y elegir el README correspondiente
+    if Sys.iswindows()
+        readme_main = joinpath(project_root, "README_WINDOWS.md")
+        system_name = "Windows"
+    elseif Sys.islinux()
+        readme_main = joinpath(project_root, "README_UBUNTU.md")
+        system_name = "Ubuntu/Linux"
+    else
+        # Fallback a README.md genérico
+        readme_main = joinpath(project_root, "README.md")
+        system_name = "Generic"
     end
-    println("[build] Generando README-portable.md desde README.md...")
+    
+    if !isfile(readme_main)
+        @warn "No se encontró $readme_main en la raíz del proyecto"
+        # Intentar con README.md como fallback
+        readme_main = joinpath(project_root, "README.md")
+        if !isfile(readme_main)
+            @warn "No se encontró README.md en la raíz del proyecto: $readme_main"
+            return false
+        end
+    end
+    println("[build] Generando README-portable.md desde $(basename(readme_main)) ($system_name)...")
     
     # Leer el README principal
     readme_content = read(readme_main, String)
@@ -77,8 +94,18 @@ function generate_portable_readme(app_dir::String, project_root::String)
     end
     
     # Extraer las secciones requeridas
-    section_requisitos_portable = extract_section(readme_content, "Requisitos para ejecutable portable en Windows", 1)
+    # Intentar con nombres específicos de Windows, luego con genéricos
+    section_requisitos_portable = extract_section(readme_content, "Requisitos para ejecutable portable", 1)
+    if isempty(section_requisitos_portable)
+        section_requisitos_portable = extract_section(readme_content, "Requisitos del sistema", 1)
+    end
+    
+    # Intentar extraer instalación de Verificatum (puede ser Paso 2 en ambos sistemas)
     section_wsl_verificatum = extract_section(readme_content, "Paso 2: Instalar Verificatum", 2)
+    if isempty(section_wsl_verificatum)
+        section_wsl_verificatum = extract_section(readme_content, "Paso 2: Instalar Verificatum en WSL", 2)
+    end
+    
     section_ejecucion = extract_section(readme_content, "Ejecución del verificador", 1)
     section_que_verifica = extract_section(readme_content, "Qué verifica este software", 1)
     section_estructura = extract_section(readme_content, "Estructura de archivos del dataset", 1)
