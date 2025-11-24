@@ -105,7 +105,7 @@ Desde la raíz del repositorio clonado:
 cd ~/VerificadorVerificatum
 
 # Activar el entorno del proyecto e instalar dependencias
-julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. -e 'using Pkg; Pkg.resolve(); Pkg.instantiate()'
 
 # Verificar que ShuffleProofs se instaló correctamente
 julia --project=. -e 'using ShuffleProofs; println("ShuffleProofs cargado correctamente")'

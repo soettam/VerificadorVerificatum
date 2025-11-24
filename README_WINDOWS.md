@@ -189,7 +189,7 @@ Abrir **PowerShell o CMD** (no requiere Administrador), en la raíz del reposito
 cd C:\Verificador
 
 # Activar el entorno del proyecto e instalar dependencias
-julia --project=. -e "using Pkg; Pkg.instantiate()"
+julia --project=. -e "using Pkg; Pkg.resolve(); Pkg.instantiate()"
 
 # Verificar que ShuffleProofs se instaló correctamente
 julia --project=. -e "using ShuffleProofs"
@@ -412,14 +412,36 @@ julia --project=. -e "using Pkg; Pkg.add(\"JSON\")"
 
 ## Error al compilar: "PackageCompiler version mismatch"
 
+**Causa:** Versión incorrecta de Julia o Manifest.toml desactualizado.
+
+**Solución:**
 Abrir **PowerShell**:
 ```powershell
 juliaup default 1.11.7
 cd C:\Verificador
-julia --project=. -e "using Pkg; Pkg.instantiate()"
+julia --project=. -e "using Pkg; Pkg.resolve(); Pkg.instantiate()"
 julia --project=. JuliaBuild\build_portable_app.jl
 ```
 
+**Nota:** El comando `Pkg.resolve()` es importante para regenerar el Manifest.toml correctamente en Windows.
+
+## Checklist rápido: ¿Qué necesito antes de compilar?
+
+Si estás en una **PC nueva desde cero**, asegúrate de haber completado **todos estos pasos** antes de compilar:
+
+1. Julia 1.11.7 instalado → Ver [Paso 1](#paso-1-instalar-julia)
+2. Rutas largas habilitadas → Ver [Paso 1](#paso-1-instalar-julia) punto 6
+3. Git instalado → Ver [Paso 3](#paso-3-clonar-este-repositorio) punto 1
+4. WSL 2 con Ubuntu → Ver [Paso 1](#paso-1-instalar-julia) punto 4-5
+5. Verificatum en WSL → Ver [Paso 2](#paso-2-instalar-verificatum-en-wsl)
+6. Repositorio clonado → Ver [Paso 3](#paso-3-clonar-este-repositorio)
+
+**Solo después** de completar estos 6 pasos, ejecutar:
+```powershell
+cd C:\Verificador
+julia --project=. -e "using Pkg; Pkg.resolve(); Pkg.instantiate()"
+julia --project=. JuliaBuild\build_portable_app.jl
+```
 ## Error en Windows: "git no encontrado"
 
 Abrir **CMD** o **PowerShell**:
