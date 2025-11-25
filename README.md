@@ -82,6 +82,8 @@ $$F = \prod_{i=0}^{N-1} w_i^{e_i}$$
 
 $$F^v \cdot F' = \text{Enc}_{pk}(1, -k_F) \cdot \prod (w_i')^{k_{E,i}}$$
 
+
+
 ---
 
 # Estructura de archivos del dataset
