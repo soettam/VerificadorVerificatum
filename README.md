@@ -55,22 +55,31 @@ Revisa que el conjunto de votos reencriptados corresponde exactamente a los orig
 ### Ecuaciones verificadas
 
 **Chequeo A (compromiso ponderado):**
+
 $$A = \prod_{i=0}^{N-1} u_i^{e_i}$$
+
 $$A^v \cdot A' = g^{k_A} \cdot \prod h_i^{k_{E,i}}$$
 
 **Chequeo B (cadena intermedia):**
+
 $$(B_i)^v \cdot B_i' = g^{k_{B,i}} \cdot \text{pred}^{k_{E,i}}$$
 
 **Chequeo C (producto acumulado):**
+
 $$C = \prod_{i=0}^{N-1} u_i \Big/ \prod h_i$$
+
 $$C^v \cdot C' = g^{k_C}$$
 
 **Chequeo D (último eslabón):**
+
 $$D = B_{N-1} \cdot h_0^{\prod e_i}$$
+
 $$D^v \cdot D' = g^{k_D}$$
 
 **Chequeo F (reencriptado batch):**
+
 $$F = \prod_{i=0}^{N-1} w_i^{e_i}$$
+
 $$F^v \cdot F' = \text{Enc}_{pk}(1, -k_F) \cdot \prod (w_i')^{k_{E,i}}$$
 
 ---
