@@ -158,7 +158,10 @@ function verify_dataset_signatures(dataset_path::String, SignatureVerifier, Byte
             
             # Construir party_prefix según esquema Verificatum
             rel_path = relpath(data_file, httproot_dir)
-            parts = split(rel_path, "/")
+            # Normalizar separadores a forward slash (Unix style) para compatibilidad
+            # Verificatum siempre usa / en los mensajes firmados, independientemente del SO
+            rel_path_unix = replace(rel_path, "\\" => "/")
+            parts = split(rel_path_unix, "/")
             party_id = parts[1]
             full_label = join(parts[2:end], "/")
             party_prefix = "$party_id/$full_label"
