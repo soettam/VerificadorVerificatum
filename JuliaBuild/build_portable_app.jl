@@ -43,7 +43,8 @@ create_app(
     project_root,
     app_dir;
     executables = [
-        "verificador" => "julia_main"
+        "verificador" => "julia_main",
+        "verificar_firmas" => "verificar_firmas_main"
     ],
     precompile_execution_file = precompile_script,
     include_lazy_artifacts = true,

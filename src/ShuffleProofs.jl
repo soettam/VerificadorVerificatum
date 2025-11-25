@@ -37,4 +37,18 @@ function julia_main(args::Vector{String})::Cint
     end
 end
 
+function verificar_firmas_main()::Cint
+    verificar_firmas_main(collect(ARGS))
+end
+
+function verificar_firmas_main(args::Vector{String})::Cint
+    try
+        return PortableApp.verify_signatures_cli(args)
+    catch err
+        showerror(stderr, err, catch_backtrace())
+        println(stderr)
+        return 1
+    end
+end
+
 end # module

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol>
+    <version>3.1.0</version>
+    <sid>TEST</sid>
+    <name>Test Protocol</name>
+    <nopart>2</nopart>
+    <thres>1</thres>
+    <pgroup>ECqPGroup(P-256)</pgroup>
+    <keywidth>2048</keywidth>
+    <vbitlen>256</vbitlen>
+    <vbitlenro>256</vbitlenro>
+    <ebitlen>256</ebitlen>
+    <ebitlenro>256</ebitlenro>
+    <prg>SHA-256</prg>
+    <rohash>SHA-256</rohash>
+</protocol>

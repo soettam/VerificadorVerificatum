@@ -5,6 +5,16 @@ using Printf
 using Base: Cmd
 using Dates
 
+# Cargar módulos necesarios para verificación de firmas
+include(joinpath(@__DIR__, "signature_verifier.jl"))
+using .SignatureVerifier
+
+include(joinpath(@__DIR__, "bytetree.jl"))
+using .ByteTreeModule
+
+include(joinpath(@__DIR__, "signature_verification_cli.jl"))
+using .SignatureVerificationCLI
+
 const DEFAULT_RESULT_FILENAME = "chequeo_detallado_result.json"
 
 function generate_result_filename(dataset_path::AbstractString)
@@ -974,6 +984,100 @@ function cli_run(args::Vector{String})::Cint
     println("\nResultado guardado en ", output_path)
 
     0
+end
+
+# ============================================================================
+# Verificación de Firmas RSA con ByteTree
+# ============================================================================
+
+"""
+    verify_signatures_cli(args::Vector{String})
+
+Punto de entrada CLI para verificación de firmas RSA con ByteTree.
+Usa el módulo compartido signature_verification_cli.jl.
+"""
+function verify_signatures_cli(args::Vector{String})
+    # Procesar argumentos
+    if isempty(args) || any(arg -> arg in ["--help", "-h"], args)
+        println("""
+        ╔══════════════════════════════════════════════════════════════╗
+        ║        Verificación de Firmas RSA con ByteTree              ║
+        ╚══════════════════════════════════════════════════════════════╝
+        
+        Uso:
+          verificar_firmas <dataset_path> [options]
+        
+        Ejemplos:
+          verificar_firmas datasets/onpedecrypt
+          verificar_firmas datasets/onpe100
+          verificar_firmas /path/to/custom_dataset
+        
+        Opciones:
+          --quiet, -q    Modo silencioso (solo muestra resumen)
+          --help, -h     Muestra esta ayuda
+        
+        Descripción:
+          Verifica firmas RSA-2048 en formato ByteTree según el
+          protocolo Verificatum BulletinBoard.
+          
+          El dataset debe contener:
+            * protInfo.xml (con llaves RSA)
+            * httproot/ (con archivos .sig.1)
+        
+        Documentación completa:
+          docs/VERIFICACION_FIRMAS_BYTETREE.md
+        """)
+        return 0
+    end
+    
+    # Parsear argumentos
+    verbose = true
+    dataset_path = ""
+    
+    for arg in args
+        if arg in ["--quiet", "-q"]
+            verbose = false
+        elseif !startswith(arg, "-")
+            dataset_path = arg
+        end
+    end
+    
+    if isempty(dataset_path)
+        println("[ERROR] Debe especificar la ruta del dataset")
+        println("   Uso: verificar_firmas <dataset_path>")
+        println("   Ejecute con --help para más información")
+        return 1
+    end
+    
+    # Normalizar path
+    if !isabspath(dataset_path)
+        dataset_path = abspath(dataset_path)
+    end
+    
+    # Verificar dataset usando la función del módulo compartido
+    try
+        result = SignatureVerificationCLI.verify_dataset_signatures(
+            dataset_path, SignatureVerifier, ByteTreeModule; verbose=verbose
+        )
+        
+        # Retornar código de salida apropiado
+        if result["valid"] == result["total"] && result["total"] > 0
+            return 0  # Éxito total
+        elseif result["valid"] > 0
+            return 2  # Éxito parcial
+        else
+            return 1  # Fallo
+        end
+    catch e
+        println("[ERROR] Error fatal: $e")
+        if verbose
+            println()
+            println("Stack trace:")
+            showerror(stdout, e, catch_backtrace())
+            println()
+        end
+        return 1
+    end
 end
 
 end # module PortableApp
