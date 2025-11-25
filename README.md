@@ -355,7 +355,6 @@ Estos módulos implementan:
 ```
 
 Para más detalles técnicos, consultar:
-- **Documentación completa:** `docs/VERIFICACION_FIRMAS_BYTETREE.md`
 - **Código ByteTree:** `src/bytetree.jl`
 - **Código verificación:** `src/signature_verifier.jl`
 
