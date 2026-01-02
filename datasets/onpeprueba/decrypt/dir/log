@@ -1,0 +1,181 @@
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251231 08:16:58 Starting hint server.
+251231 08:16:58 Starting http server.
+251231 08:16:58 Synchronizing with the other servers. Please wait.
+251231 08:16:58 Generate keys for secret communication.
+251231 08:16:58 | Generate and read plain keys.
+251231 08:16:58 | | Generate key-pair.
+251231 08:16:58 | | Exchange public keys with all parties.
+251231 08:16:58 | | | Publish public key.
+251231 08:16:58 | | Writing keys to file.
+251231 08:16:58 | Generate independent generator.
+251231 08:16:58 | | Execute Pedersen 1 times with rotating dealer.
+251231 08:16:58 | | | Deal a secret using Pedersen VSS.
+251231 08:16:58 | | | | Generate checking elements.
+251231 08:16:58 | | | | Compute encrypted shares for all parties.
+251231 08:16:58 | | | | Publish checking elements and encrypted shares.
+251231 08:16:58 | | | | Exchange verdicts.
+251231 08:16:58 | | | | | Publish verdict (true).
+251231 08:16:58 | | | | Sharing completed.
+251231 08:16:58 | | Write independent generator to file.
+251231 08:16:58 Generate distributed keys.
+251231 08:16:58 | Generate secret.
+251231 08:16:58 | Share secret and verify sharings of others.
+251231 08:16:58 | | Execute Pedersen 1 times with rotating dealer.
+251231 08:16:58 | | | Deal a secret using Pedersen VSS.
+251231 08:16:58 | | | | Generate checking elements.
+251231 08:16:58 | | | | Compute encrypted shares for all parties.
+251231 08:16:58 | | | | Publish checking elements and encrypted shares.
+251231 08:16:58 | | | | Exchange verdicts.
+251231 08:16:58 | | | | | Publish verdict (true).
+251231 08:16:58 | | | | Sharing completed.
+251231 08:16:58 Waiting for mutual shutdown acknowledgements.
+251231 08:16:58 | Publish acknowledgement.
+251231 08:16:58 | Publish acknowledgement.
+251231 08:16:58 Allow download of our acknowledgment for another 1 seconds.
+251231 08:16:59 Stopping hint server.
+251231 08:16:59 Stopping http server.
+-----------------------------------------------------------
+Completed key generation.
+
+Running time:                                          (ms)
+- Execution         0h  0m  1s                         1065
+- Network           0h  0m  0s                           17
+- Effective         0h  0m  1s                         1048
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  1s                         1048
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251231 08:17:15 Starting hint server.
+251231 08:17:15 Starting http server.
+251231 08:17:15 Synchronizing with the other servers. Please wait.
+251231 08:17:15 Generate keys for secret communication.
+251231 08:17:15 | Generate and read plain keys.
+251231 08:17:15 | | Read keys from file.
+251231 08:17:15 | Generate independent generator.
+251231 08:17:15 | | Read independent generator from file.
+251231 08:17:15 Generate distributed keys.
+251231 08:17:15 | Read secret key and polynomial in exponent from file.
+251231 08:17:15 Shuffle 33 ciphertexts.
+251231 08:17:15 | Derive independent generators using RO.
+251231 08:17:15 | Generate reencryption exponents.
+251231 08:17:16 | Compute reencryption factors.
+251231 08:17:16 | Perform local pre-computation.
+251231 08:17:16 | Compute permutation commitment.
+251231 08:17:16 | Compute output list.
+251231 08:17:16 | Publish output list.
+251231 08:17:16 | Prove correctness of shuffle.
+251231 08:17:16 | | Publish our permutation commitment.
+251231 08:17:16 | | Generate batching vector.
+251231 08:17:16 | | | Derive 256 bits using random oracle.
+251231 08:17:16 | | Compute commitment.
+251231 08:17:17 | | Publish our commitment.
+251231 08:17:17 | | Generate challenge.
+251231 08:17:17 | | | Derive 256 bits using random oracle.
+251231 08:17:17 | | Compute reply.
+251231 08:17:17 | | Publish reply.
+251231 08:17:17 Waiting for mutual shutdown acknowledgements.
+251231 08:17:17 | Publish acknowledgement.
+251231 08:17:17 | Publish acknowledgement.
+251231 08:17:17 Allow download of our acknowledgment for another 1 seconds.
+251231 08:17:18 Stopping hint server.
+251231 08:17:18 Stopping http server.
+-----------------------------------------------------------
+Completed shuffling.
+
+Running time:                                          (ms)
+- Execution         0h  0m  2s                         2309
+- Network           0h  0m  0s                           18
+- Effective         0h  0m  2s                         2291
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  2s                         2291
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+Proof size:            27.5 KB                        27486
+
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251231 08:17:20 Starting hint server.
+251231 08:17:20 Starting http server.
+251231 08:17:20 Synchronizing with the other servers. Please wait.
+251231 08:17:20 Generate keys for secret communication.
+251231 08:17:20 | Generate and read plain keys.
+251231 08:17:20 | | Read keys from file.
+251231 08:17:20 | Generate independent generator.
+251231 08:17:20 | | Read independent generator from file.
+251231 08:17:20 Generate distributed keys.
+251231 08:17:20 | Read secret key and polynomial in exponent from file.
+251231 08:17:20 Decrypt 33 ciphertexts.
+251231 08:17:20 | Compute decryption factors.
+251231 08:17:20 | Collect decryption factors.
+251231 08:17:20 | | Publish decryption factors.
+251231 08:17:20 | Generate seed for batching.
+251231 08:17:20 | | Derive 256 bits using random oracle.
+251231 08:17:20 | Batch input ciphertexts.
+251231 08:17:20 | Collect commitments.
+251231 08:17:20 | | Publish commitment.
+251231 08:17:20 | Generate challenge.
+251231 08:17:20 | | Derive 256 bits using random oracle.
+251231 08:17:20 Collect replies.
+251231 08:17:20 | Publish reply.
+251231 08:17:20 | Verify a combined proof.
+251231 08:17:20 | | Combine proof commitments and replies.
+251231 08:17:20 | | Batch combined decryption factors.
+251231 08:17:20 | | Perform verification.
+251231 08:17:20 | | Accepted joint proof.
+251231 08:17:20 | Compute plaintexts.
+251231 08:17:20 Waiting for mutual shutdown acknowledgements.
+251231 08:17:20 | Publish acknowledgement.
+251231 08:17:20 | Publish acknowledgement.
+251231 08:17:20 Allow download of our acknowledgment for another 1 seconds.
+251231 08:17:21 Stopping hint server.
+251231 08:17:21 Stopping http server.
+-----------------------------------------------------------
+Completed decryption.
+
+Running time:                                          (ms)
+- Execution         0h  0m  1s                         1264
+- Network           0h  0m  0s                           13
+- Effective         0h  0m  1s                         1251
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  1s                         1251
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+Proof size:            27.7 KB                        27690
+

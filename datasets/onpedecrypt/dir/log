@@ -179,3 +179,124 @@ Communication:                                      (bytes)
 
 Proof size:            25.3 KB                        25272
 
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251229 20:02:12 Starting hint server.
+251229 20:02:12 Starting http server.
+251229 20:02:12 Synchronizing with the other servers. Please wait.
+251229 20:02:12 Generate keys for secret communication.
+251229 20:02:12 | Generate and read plain keys.
+251229 20:02:12 | | Read keys from file.
+251229 20:02:12 | Generate independent generator.
+251229 20:02:12 | | Read independent generator from file.
+251229 20:02:12 Generate distributed keys.
+251229 20:02:12 | Read secret key and polynomial in exponent from file.
+251229 20:02:12 Shuffle 333 ciphertexts.
+251229 20:02:12 | Derive independent generators using RO.
+251229 20:02:12 | Generate reencryption exponents.
+251229 20:02:12 | Compute reencryption factors.
+251229 20:02:13 | Perform local pre-computation.
+251229 20:02:13 | Compute permutation commitment.
+251229 20:02:13 | Compute output list.
+251229 20:02:13 | Publish output list.
+251229 20:02:13 | Prove correctness of shuffle.
+251229 20:02:13 | | Publish our permutation commitment.
+251229 20:02:13 | | Generate batching vector.
+251229 20:02:13 | | | Derive 256 bits using random oracle.
+251229 20:02:13 | | Compute commitment.
+251229 20:02:14 | | Publish our commitment.
+251229 20:02:14 | | Generate challenge.
+251229 20:02:14 | | | Derive 256 bits using random oracle.
+251229 20:02:14 | | Compute reply.
+251229 20:02:14 | | Publish reply.
+251229 20:02:14 Waiting for mutual shutdown acknowledgements.
+251229 20:02:14 | Publish acknowledgement.
+251229 20:02:14 | Publish acknowledgement.
+251229 20:02:14 Allow download of our acknowledgment for another 1 seconds.
+251229 20:02:15 Stopping hint server.
+251229 20:02:15 Stopping http server.
+-----------------------------------------------------------
+Completed shuffling.
+
+Running time:                                          (ms)
+- Execution         0h  0m  2s                         2389
+- Network           0h  0m  0s                           12
+- Effective         0h  0m  2s                         2377
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  2s                         2377
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+Proof size:           299.1 KB                       299133
+
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251229 20:02:16 Starting hint server.
+251229 20:02:16 Starting http server.
+251229 20:02:16 Synchronizing with the other servers. Please wait.
+251229 20:02:16 Generate keys for secret communication.
+251229 20:02:16 | Generate and read plain keys.
+251229 20:02:16 | | Read keys from file.
+251229 20:02:16 | Generate independent generator.
+251229 20:02:16 | | Read independent generator from file.
+251229 20:02:16 Generate distributed keys.
+251229 20:02:16 | Read secret key and polynomial in exponent from file.
+251229 20:02:16 Decrypt 333 ciphertexts.
+251229 20:02:16 | Compute decryption factors.
+251229 20:02:17 | Collect decryption factors.
+251229 20:02:17 | | Publish decryption factors.
+251229 20:02:17 | Generate seed for batching.
+251229 20:02:17 | | Derive 256 bits using random oracle.
+251229 20:02:17 | Batch input ciphertexts.
+251229 20:02:17 | Collect commitments.
+251229 20:02:17 | | Publish commitment.
+251229 20:02:17 | Generate challenge.
+251229 20:02:17 | | Derive 256 bits using random oracle.
+251229 20:02:17 Collect replies.
+251229 20:02:17 | Publish reply.
+251229 20:02:17 | Verify a combined proof.
+251229 20:02:17 | | Combine proof commitments and replies.
+251229 20:02:17 | | Batch combined decryption factors.
+251229 20:02:17 | | Perform verification.
+251229 20:02:17 | | Accepted joint proof.
+251229 20:02:17 | Compute plaintexts.
+251229 20:02:17 Waiting for mutual shutdown acknowledgements.
+251229 20:02:17 | Publish acknowledgement.
+251229 20:02:17 | Publish acknowledgement.
+251229 20:02:17 Allow download of our acknowledgment for another 1 seconds.
+251229 20:02:18 Stopping hint server.
+251229 20:02:18 Stopping http server.
+-----------------------------------------------------------
+Completed decryption.
+
+Running time:                                          (ms)
+- Execution         0h  0m  1s                         1287
+- Network           0h  0m  0s                           11
+- Effective         0h  0m  1s                         1276
+- Idle              0h  0m  0s                            0
+- Computation       0h  0m  1s                         1276
+
+Communication:                                      (bytes)
+- Sent                  0.0 B                             0
+- Received              0.0 B                             0
+- Total                 0.0 B                             0
+
+Proof size:           299.3 KB                       299337
+

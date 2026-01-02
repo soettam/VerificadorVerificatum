@@ -43,8 +43,8 @@ julia JuliaBuild/chequeo_detallado.jl datasets/onpeconprecomp
 
 ################### Hasta decriptacion
 
-mkdir onpedecrypt
-cd onpedecrypt
+mkdir onpeprueba
+cd onpeprueba
 PGROUP=$(vog -gen ECqPGroup -name "P-256") 
 vmni -prot -sid 'ONPE' -name 'Eleccion Onpe' -nopart 1 -thres 1 -pgroup "$PGROUP"
 RAND=$(vog -gen RandomDevice /dev/urandom) 
@@ -53,20 +53,29 @@ cp localProtInfo.xml protInfo01.xml
 vmni -merge protInfo01.xml protInfo.xml
 vmn -keygen -e publicKey
 vmnc -pkey -outi native publicKey publicKey_ext
-vmnd -ciphs -e -i native -width 1 publicKey_ext 30 ciphertexts_ext
+vmnd -ciphs -e -i native -width 1 publicKey_ext 33 ciphertexts_ext
 vmnc -ciphs -sloppy -ini native -width 1 ciphertexts_ext ciphertexts
-vmn -shuffle privInfo.xml protInfo.xml ciphertexts ciphertextsout 
-mkdir shuffle
-cp -rf dir shuffle/dir
-cp -rf httproot shuffle/httproot
-vmn -decrypt privInfo.xml protInfo.xml ciphertextsout plaintexts_orig
+
+vmn -shuffle privInfo.xml protInfo.xml ciphertexts ciphertextsout -auxsid onpeprueba
+
+mkdir -p shuffle
+cp -r dir shuffle/ 2>/dev/null || true
+cp -r httproot shuffle/ 2>/dev/null || true
+
+vmn -decrypt privInfo.xml protInfo.xml ciphertextsout plaintexts_orig -auxsid onpeprueba
+
+mkdir -p decrypt
+cp -r dir decrypt/ 2>/dev/null || true
+cp -r httproot decrypt/ 2>/dev/null || true
+
 vmnc -plain -outi native plaintexts_orig plaintexts
-cp shuffle/dir/nizkp/default/ShuffledCiphertexts.bt dir/nizkp/default/
+cp shuffle/dir/nizkp/onpeprueba/ShuffledCiphertexts.bt dir/nizkp/onpeprueba/
 
 cd ..
 cd ..
 
-julia JuliaBuild/chequeo_detallado.jl datasets/onpedecrypt -mix
+julia JuliaBuild/chequeo_detallado.jl datasets/onpedecrypt -mix onpeprueba
+julia JuliaBuild/chequeo_detallado.jl datasets/onpedecrypt -mix onpeprueba > log_onpedecrypt.txt
 ###################
 
 

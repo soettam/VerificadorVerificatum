@@ -346,8 +346,8 @@ Carga los ciphertexts de INPUT para una party específica en modo multi-party mi
 - Party 1: usa Ciphertexts.bt (originales)
 - Party 2+: usa CiphertextsN-1.bt (salida de la party anterior)
 """
-function load_party_input_ciphertexts(dataset::AbstractString, g::Group, party_id::Int, num_parties::Int)
-    NIZKP = joinpath(dataset, "dir", "nizkp", "default")
+function load_party_input_ciphertexts(dataset::AbstractString, g::Group, party_id::Int, num_parties::Int, auxsid::AbstractString="default")
+    NIZKP = joinpath(dataset, "dir", "nizkp", auxsid)
     G = typeof(g)
     
     if party_id == 1
@@ -365,15 +365,15 @@ end
 
 
 """
-    load_party_output_ciphertexts(dataset, g, party_id, num_parties)
+    load_party_output_ciphertexts(dataset, g, party_id, num_parties, auxsid)
 
 Carga los ciphertexts de OUTPUT para una party específica en modo multi-party mixing.
 
 - Party 1 a N-1: usa CiphertextsN.bt
 - Party N (última): usa ShuffledCiphertexts.bt
 """
-function load_party_output_ciphertexts(dataset::AbstractString, g::Group, party_id::Int, num_parties::Int)
-    NIZKP = joinpath(dataset, "dir", "nizkp", "default")
+function load_party_output_ciphertexts(dataset::AbstractString, g::Group, party_id::Int, num_parties::Int, auxsid::AbstractString="default")
+    NIZKP = joinpath(dataset, "dir", "nizkp", auxsid)
     G = typeof(g)
     
     if party_id == num_parties

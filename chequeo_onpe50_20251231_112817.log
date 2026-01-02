@@ -1,0 +1,40 @@
+SystemError: opening file "/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default//Ciphertexts.bt": No existe el archivo o el directorio
+Stacktrace:
+  [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+    @ Base ./error.jl:176
+  [2] systemerror
+    @ ./error.jl:175 [inlined]
+  [3] open(fname::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing)
+    @ Base ./iostream.jl:295
+  [4] open
+    @ ./iostream.jl:277 [inlined]
+  [5] open(f::Base.var"#472#473"{Tuple{}}, args::String; kwargs::@Kwargs{})
+    @ Base ./io.jl:408
+  [6] open
+    @ ./io.jl:407 [inlined]
+  [7] read
+    @ ./io.jl:505 [inlined]
+  [8] load_verificatum_proposition(basedir::String, auxsid::String; G::Nothing)
+    @ ShuffleProofs ~/ShuffleProofs.jl-main/src/serializer.jl:259
+  [9] load_verificatum_proposition
+    @ ~/ShuffleProofs.jl-main/src/serializer.jl:240 [inlined]
+ [10] load_verificatum_simulator(basedir::String; auxsid::String, G::Nothing)
+    @ ShuffleProofs ~/ShuffleProofs.jl-main/src/serializer.jl:300
+ [11] load_verificatum_simulator
+    @ ~/ShuffleProofs.jl-main/src/serializer.jl:296 [inlined]
+ [12] detailed_chequeo(dataset::String, vmnv_path::Cmd; mode::String, auxsid::String)
+    @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:647
+ [13] detailed_chequeo
+    @ ~/ShuffleProofs.jl-main/src/portable_app.jl:617 [inlined]
+ [14] cli_run(args::Vector{String})
+    @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:910
+ [15] julia_main(args::Vector{String})
+    @ ShuffleProofs ~/ShuffleProofs.jl-main/src/ShuffleProofs.jl:32
+ [16] top-level scope
+    @ ~/ShuffleProofs.jl-main/JuliaBuild/chequeo_detallado.jl:24
+ [17] include(mod::Module, _path::String)
+    @ Base ./Base.jl:562
+ [18] exec_options(opts::Base.JLOptions)
+    @ Base ./client.jl:323
+ [19] _start()
+    @ Base ./client.jl:531
