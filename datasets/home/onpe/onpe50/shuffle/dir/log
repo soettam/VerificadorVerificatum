@@ -1,0 +1,240 @@
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251231 16:08:53 Starting hint server.
+251231 16:08:53 Starting http server.
+251231 16:08:53 Synchronizing with the other servers. Please wait.
+251231 16:08:54 Generate keys for secret communication.
+251231 16:08:54 | Generate and read plain keys.
+251231 16:08:54 | | Generate key-pair.
+251231 16:08:54 | | Exchange public keys with all parties.
+251231 16:08:54 | | | Publish public key.
+251231 16:08:54 | | | Read public key of Party02.
+251231 16:08:55 | | | Parsed public key successfully.
+251231 16:08:55 | | | Read public key of Party03.
+251231 16:08:55 | | | Parsed public key successfully.
+251231 16:08:55 | | | Read public key of Party04.
+251231 16:08:56 | | | Parsed public key successfully.
+251231 16:08:56 | | | Read public key of Party05.
+251231 16:08:56 | | | Parsed public key successfully.
+251231 16:08:56 | | Writing keys to file.
+251231 16:08:56 | Generate independent generator.
+251231 16:08:56 | | Execute Pedersen 3 times with rotating dealer.
+251231 16:08:56 | | | Deal a secret using Pedersen VSS.
+251231 16:08:56 | | | | Generate checking elements.
+251231 16:08:56 | | | | Compute encrypted shares for all parties.
+251231 16:08:56 | | | | Publish checking elements and encrypted shares.
+251231 16:08:56 | | | | Exchange verdicts.
+251231 16:08:56 | | | | | Publish verdict (true).
+251231 16:08:57 | | | | | Read verdict of Party02.
+251231 16:08:57 | | | | | Parse verdict (true).
+251231 16:08:57 | | | | | Read verdict of Party03.
+251231 16:08:58 | | | | | Parse verdict (true).
+251231 16:08:58 | | | | | Read verdict of Party04.
+251231 16:08:58 | | | | | Parse verdict (true).
+251231 16:08:58 | | | | | Read verdict of Party05.
+251231 16:08:58 | | | | | Parse verdict (true).
+251231 16:08:58 | | | | Sharing completed.
+251231 16:08:58 | | | Verify Pedersen VSS of Party02.
+251231 16:08:58 | | | | Read checking elements and ciphertexts from Party02.
+251231 16:08:59 | | | | Our share is correct.
+251231 16:08:59 | | | | Exchange verdicts.
+251231 16:08:59 | | | | | Publish verdict (true).
+251231 16:08:59 | | | | | Read verdict of Party02.
+251231 16:09:00 | | | | | Parse verdict (true).
+251231 16:09:00 | | | | | Read verdict of Party03.
+251231 16:09:00 | | | | | Parse verdict (true).
+251231 16:09:00 | | | | | Read verdict of Party04.
+251231 16:09:00 | | | | | Parse verdict (true).
+251231 16:09:00 | | | | | Read verdict of Party05.
+251231 16:09:01 | | | | | Parse verdict (true).
+251231 16:09:01 | | | | Sharing of Party02 is accepted.
+251231 16:09:01 | | | Verify Pedersen VSS of Party03.
+251231 16:09:01 | | | | Read checking elements and ciphertexts from Party03.
+251231 16:09:01 | | | | Our share is correct.
+251231 16:09:01 | | | | Exchange verdicts.
+251231 16:09:01 | | | | | Publish verdict (true).
+251231 16:09:01 | | | | | Read verdict of Party02.
+251231 16:09:01 | | | | | Parse verdict (true).
+251231 16:09:01 | | | | | Read verdict of Party03.
+251231 16:09:02 | | | | | Parse verdict (true).
+251231 16:09:02 | | | | | Read verdict of Party04.
+251231 16:09:02 | | | | | Parse verdict (true).
+251231 16:09:02 | | | | | Read verdict of Party05.
+251231 16:09:02 | | | | | Parse verdict (true).
+251231 16:09:02 | | | | Sharing of Party03 is accepted.
+251231 16:09:02 | | Write independent generator to file.
+251231 16:09:02 Generate distributed keys.
+251231 16:09:02 | Generate secret.
+251231 16:09:02 | Share secret and verify sharings of others.
+251231 16:09:02 | | Execute Pedersen 3 times with rotating dealer.
+251231 16:09:02 | | | Deal a secret using Pedersen VSS.
+251231 16:09:02 | | | | Generate checking elements.
+251231 16:09:02 | | | | Compute encrypted shares for all parties.
+251231 16:09:03 | | | | Publish checking elements and encrypted shares.
+251231 16:09:03 | | | | Exchange verdicts.
+251231 16:09:03 | | | | | Publish verdict (true).
+251231 16:09:03 | | | | | Read verdict of Party02.
+251231 16:09:03 | | | | | Parse verdict (true).
+251231 16:09:03 | | | | | Read verdict of Party03.
+251231 16:09:04 | | | | | Parse verdict (true).
+251231 16:09:04 | | | | | Read verdict of Party04.
+251231 16:09:04 | | | | | Parse verdict (true).
+251231 16:09:04 | | | | | Read verdict of Party05.
+251231 16:09:05 | | | | | Parse verdict (true).
+251231 16:09:05 | | | | Sharing completed.
+251231 16:09:05 | | | Verify Pedersen VSS of Party02.
+251231 16:09:05 | | | | Read checking elements and ciphertexts from Party02.
+251231 16:09:05 | | | | Our share is correct.
+251231 16:09:05 | | | | Exchange verdicts.
+251231 16:09:05 | | | | | Publish verdict (true).
+251231 16:09:05 | | | | | Read verdict of Party02.
+251231 16:09:06 | | | | | Parse verdict (true).
+251231 16:09:06 | | | | | Read verdict of Party03.
+251231 16:09:06 | | | | | Parse verdict (true).
+251231 16:09:06 | | | | | Read verdict of Party04.
+251231 16:09:06 | | | | | Parse verdict (true).
+251231 16:09:06 | | | | | Read verdict of Party05.
+251231 16:09:07 | | | | | Parse verdict (true).
+251231 16:09:07 | | | | Sharing of Party02 is accepted.
+251231 16:09:07 | | | Verify Pedersen VSS of Party03.
+251231 16:09:07 | | | | Read checking elements and ciphertexts from Party03.
+251231 16:09:07 | | | | Our share is correct.
+251231 16:09:07 | | | | Exchange verdicts.
+251231 16:09:07 | | | | | Publish verdict (true).
+251231 16:09:07 | | | | | Read verdict of Party02.
+251231 16:09:08 | | | | | Parse verdict (true).
+251231 16:09:08 | | | | | Read verdict of Party03.
+251231 16:09:08 | | | | | Parse verdict (true).
+251231 16:09:08 | | | | | Read verdict of Party04.
+251231 16:09:08 | | | | | Parse verdict (true).
+251231 16:09:08 | | | | | Read verdict of Party05.
+251231 16:09:09 | | | | | Parse verdict (true).
+251231 16:09:09 | | | | Sharing of Party03 is accepted.
+251231 16:09:09 Waiting for mutual shutdown acknowledgements.
+251231 16:09:09 | Publish acknowledgement.
+251231 16:09:09 | Wait for Party02 to acknowledge.
+251231 16:09:09 | Wait for Party03 to acknowledge.
+251231 16:09:10 | Wait for Party04 to acknowledge.
+251231 16:09:10 | Wait for Party05 to acknowledge.
+251231 16:09:10 | Publish acknowledgement.
+251231 16:09:11 | Wait for Party02 to acknowledge.
+251231 16:09:11 | Wait for Party03 to acknowledge.
+251231 16:09:11 | Wait for Party04 to acknowledge.
+251231 16:09:12 | Wait for Party05 to acknowledge.
+251231 16:09:12 Allow download of our acknowledgment for another 1 seconds.
+251231 16:09:13 Stopping hint server.
+251231 16:09:13 Stopping http server.
+-----------------------------------------------------------
+Completed key generation.
+
+Running time:                                          (ms)
+- Execution         0h  0m 19s                        19042
+- Network           0h  0m 13s                        13723
+- Effective         0h  0m  5s                         5319
+- Idle              0h  0m  4s                         4041
+- Computation       0h  0m  1s                         1278
+
+Communication:                                      (bytes)
+- Sent                 93.2 KB                        93212
+- Received             75.1 KB                        75080
+- Total               168.3 KB                       168292
+
+
+-----------------------------------------------------------
+ Copyright Douglas Wikstrom 2008-2019
+ Licensed under AGPL as defined in:
+ https://www.gnu.org/licenses/agpl-3.0.en.html
+-----------------------------------------------------------
+-----------------------------------------------------------
+Party01
+-----------------------------------------------------------
+251231 16:09:52 Starting hint server.
+251231 16:09:52 Starting http server.
+251231 16:09:52 Synchronizing with the other servers. Please wait.
+251231 16:10:49 Generate keys for secret communication.
+251231 16:10:49 | Generate and read plain keys.
+251231 16:10:49 | | Read keys from file.
+251231 16:10:49 | Generate independent generator.
+251231 16:10:49 | | Read independent generator from file.
+251231 16:10:49 Generate distributed keys.
+251231 16:10:49 | Read secret key and polynomial in exponent from file.
+251231 16:10:49 Shuffle 1000 ciphertexts.
+251231 16:10:49 | Derive independent generators using RO.
+251231 16:10:49 | Generate reencryption exponents.
+251231 16:10:50 | Compute reencryption factors.
+251231 16:10:51 | Perform local pre-computation.
+251231 16:10:51 | Compute permutation commitment.
+251231 16:10:53 | Compute output list.
+251231 16:10:54 | Publish output list.
+251231 16:10:54 | Prove correctness of shuffle.
+251231 16:10:54 | | Publish our permutation commitment.
+251231 16:10:54 | | Generate batching vector.
+251231 16:10:54 | | | Derive 256 bits using random oracle.
+251231 16:10:54 | | Compute commitment.
+251231 16:10:57 | | Publish our commitment.
+251231 16:10:57 | | Generate challenge.
+251231 16:10:57 | | | Derive 256 bits using random oracle.
+251231 16:10:57 | | Compute reply.
+251231 16:10:57 | | Publish reply.
+251231 16:10:57 | Read output list from Party02.
+251231 16:10:58 | Verify correctness of shuffle of Party02.
+251231 16:10:58 | | Read the permutation commitment.
+251231 16:10:59 | | Generate batching vector.
+251231 16:10:59 | | | Derive 256 bits using random oracle.
+251231 16:10:59 | | Batch.
+251231 16:10:59 | | Read the commitment.
+251231 16:11:01 | | Generate challenge.
+251231 16:11:01 | | | Derive 256 bits using random oracle.
+251231 16:11:01 | | Read the reply.
+251231 16:11:02 | | Perform verification.
+251231 16:11:02 | | Accepted proof.
+251231 16:11:02 | Read output list from Party03.
+251231 16:11:02 | Verify correctness of shuffle of Party03.
+251231 16:11:02 | | Read the permutation commitment.
+251231 16:11:03 | | Generate batching vector.
+251231 16:11:03 | | | Derive 256 bits using random oracle.
+251231 16:11:03 | | Batch.
+251231 16:11:03 | | Read the commitment.
+251231 16:11:05 | | Generate challenge.
+251231 16:11:05 | | | Derive 256 bits using random oracle.
+251231 16:11:05 | | Read the reply.
+251231 16:11:06 | | Perform verification.
+251231 16:11:06 | | Accepted proof.
+251231 16:11:06 Waiting for mutual shutdown acknowledgements.
+251231 16:11:06 | Publish acknowledgement.
+251231 16:11:06 | Wait for Party02 to acknowledge.
+251231 16:11:07 | Wait for Party03 to acknowledge.
+251231 16:11:07 | Wait for Party04 to acknowledge.
+251231 16:11:07 | Wait for Party05 to acknowledge.
+251231 16:11:07 | Publish acknowledgement.
+251231 16:11:08 | Wait for Party02 to acknowledge.
+251231 16:11:08 | Wait for Party03 to acknowledge.
+251231 16:11:09 | Wait for Party04 to acknowledge.
+251231 16:11:09 | Wait for Party05 to acknowledge.
+251231 16:11:09 Allow download of our acknowledgment for another 1 seconds.
+251231 16:11:10 Stopping hint server.
+251231 16:11:10 Stopping http server.
+-----------------------------------------------------------
+Completed shuffling.
+
+Running time:                                          (ms)
+- Execution         0h  0m 21s                        21025
+- Network           0h  0m  5s                         5829
+- Effective         0h  0m 15s                        15196
+- Idle              0h  0m  6s                         6650
+- Computation       0h  0m  8s                         8546
+
+Communication:                                      (bytes)
+- Sent                  2.0 MB                      1950520
+- Received            987.3 KB                       987276
+- Total                 2.9 MB                      2937796
+
+Proof size:             1.8 MB                      1769304
+

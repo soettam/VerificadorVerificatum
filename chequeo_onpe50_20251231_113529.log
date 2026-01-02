@@ -1,0 +1,160 @@
+Precompiling ShuffleProofs...
+   1010.1 ms  ✓ ShuffleProofs
+  1 dependency successfully precompiled in 1 seconds. 49 already precompiled.
+[ Info: Detectado dataset multi-party con 3 parties. Verificando cada party...
+[ Info: Extrayendo generadores globales con vmnv -mix...
+[ Info: Generadores globales extraídos: 1000 generadores
+[ Info: Procesando party 1 de 3...
+┌ Error: Error procesando party 1: SystemError("opening file \"/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/Ciphertexts.bt\"", 2, nothing)
+└ @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:814
+┌ Error: Backtrace:
+│   exception =
+│    SystemError: opening file "/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/Ciphertexts.bt": No existe el archivo o el directorio
+│    Stacktrace:
+│      [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+│        @ Base ./error.jl:176
+│      [2] systemerror
+│        @ ./error.jl:175 [inlined]
+│      [3] open(fname::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing)
+│        @ Base ./iostream.jl:295
+│      [4] open
+│        @ ./iostream.jl:277 [inlined]
+│      [5] open(f::Base.var"#472#473"{Tuple{}}, args::String; kwargs::@Kwargs{})
+│        @ Base ./io.jl:408
+│      [6] open
+│        @ ./io.jl:407 [inlined]
+│      [7] read
+│        @ ./io.jl:505 [inlined]
+│      [8] load_party_input_ciphertexts(dataset::String, g::@ECGroup{P_256}, party_id::Int64, num_parties::Int64)
+│        @ ShuffleProofs ~/ShuffleProofs.jl-main/src/serializer.jl:361
+│      [9] detailed_chequeo_multiparty(dataset::String, vmnv_path::Cmd, num_parties::Int64, auxsid::String)
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:741
+│     [10] detailed_chequeo(dataset::String, vmnv_path::Cmd; mode::String, auxsid::String)
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:638
+│     [11] detailed_chequeo
+│        @ ~/ShuffleProofs.jl-main/src/portable_app.jl:617 [inlined]
+│     [12] cli_run(args::Vector{String})
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:910
+│     [13] julia_main(args::Vector{String})
+│        @ ShuffleProofs ~/ShuffleProofs.jl-main/src/ShuffleProofs.jl:32
+│     [14] top-level scope
+│        @ ~/ShuffleProofs.jl-main/JuliaBuild/chequeo_detallado.jl:24
+│     [15] include(mod::Module, _path::String)
+│        @ Base ./Base.jl:562
+│     [16] exec_options(opts::Base.JLOptions)
+│        @ Base ./client.jl:323
+│     [17] _start()
+│        @ Base ./client.jl:531
+└ @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:816
+[ Info: Procesando party 2 de 3...
+┌ Error: Error procesando party 2: SystemError("opening file \"/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/proofs/Ciphertexts01.bt\"", 2, nothing)
+└ @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:814
+┌ Error: Backtrace:
+│   exception =
+│    SystemError: opening file "/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/proofs/Ciphertexts01.bt": No existe el archivo o el directorio
+│    Stacktrace:
+│      [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+│        @ Base ./error.jl:176
+│      [2] systemerror
+│        @ ./error.jl:175 [inlined]
+│      [3] open(fname::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing)
+│        @ Base ./iostream.jl:295
+│      [4] open
+│        @ ./iostream.jl:277 [inlined]
+│      [5] open(f::Base.var"#472#473"{Tuple{}}, args::String; kwargs::@Kwargs{})
+│        @ Base ./io.jl:408
+│      [6] open
+│        @ ./io.jl:407 [inlined]
+│      [7] read
+│        @ ./io.jl:505 [inlined]
+│      [8] load_party_input_ciphertexts(dataset::String, g::@ECGroup{P_256}, party_id::Int64, num_parties::Int64)
+│        @ ShuffleProofs ~/ShuffleProofs.jl-main/src/serializer.jl:361
+│      [9] detailed_chequeo_multiparty(dataset::String, vmnv_path::Cmd, num_parties::Int64, auxsid::String)
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:741
+│     [10] detailed_chequeo(dataset::String, vmnv_path::Cmd; mode::String, auxsid::String)
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:638
+│     [11] detailed_chequeo
+│        @ ~/ShuffleProofs.jl-main/src/portable_app.jl:617 [inlined]
+│     [12] cli_run(args::Vector{String})
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:910
+│     [13] julia_main(args::Vector{String})
+│        @ ShuffleProofs ~/ShuffleProofs.jl-main/src/ShuffleProofs.jl:32
+│     [14] top-level scope
+│        @ ~/ShuffleProofs.jl-main/JuliaBuild/chequeo_detallado.jl:24
+│     [15] include(mod::Module, _path::String)
+│        @ Base ./Base.jl:562
+│     [16] exec_options(opts::Base.JLOptions)
+│        @ Base ./client.jl:323
+│     [17] _start()
+│        @ Base ./client.jl:531
+└ @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:816
+[ Info: Procesando party 3 de 3...
+┌ Error: Error procesando party 3: SystemError("opening file \"/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/proofs/Ciphertexts02.bt\"", 2, nothing)
+└ @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:814
+┌ Error: Backtrace:
+│   exception =
+│    SystemError: opening file "/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/proofs/Ciphertexts02.bt": No existe el archivo o el directorio
+│    Stacktrace:
+│      [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+│        @ Base ./error.jl:176
+│      [2] systemerror
+│        @ ./error.jl:175 [inlined]
+│      [3] open(fname::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing)
+│        @ Base ./iostream.jl:295
+│      [4] open
+│        @ ./iostream.jl:277 [inlined]
+│      [5] open(f::Base.var"#472#473"{Tuple{}}, args::String; kwargs::@Kwargs{})
+│        @ Base ./io.jl:408
+│      [6] open
+│        @ ./io.jl:407 [inlined]
+│      [7] read
+│        @ ./io.jl:505 [inlined]
+│      [8] load_party_input_ciphertexts(dataset::String, g::@ECGroup{P_256}, party_id::Int64, num_parties::Int64)
+│        @ ShuffleProofs ~/ShuffleProofs.jl-main/src/serializer.jl:361
+│      [9] detailed_chequeo_multiparty(dataset::String, vmnv_path::Cmd, num_parties::Int64, auxsid::String)
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:741
+│     [10] detailed_chequeo(dataset::String, vmnv_path::Cmd; mode::String, auxsid::String)
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:638
+│     [11] detailed_chequeo
+│        @ ~/ShuffleProofs.jl-main/src/portable_app.jl:617 [inlined]
+│     [12] cli_run(args::Vector{String})
+│        @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:910
+│     [13] julia_main(args::Vector{String})
+│        @ ShuffleProofs ~/ShuffleProofs.jl-main/src/ShuffleProofs.jl:32
+│     [14] top-level scope
+│        @ ~/ShuffleProofs.jl-main/JuliaBuild/chequeo_detallado.jl:24
+│     [15] include(mod::Module, _path::String)
+│        @ Base ./Base.jl:562
+│     [16] exec_options(opts::Base.JLOptions)
+│        @ Base ./client.jl:323
+│     [17] _start()
+│        @ Base ./client.jl:531
+└ @ ShuffleProofs.PortableApp ~/ShuffleProofs.jl-main/src/portable_app.jl:816
+Dataset: /home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50
+Session ID: onpe501
+Tipo: MULTI-PARTY
+Número de parties: 3
+Resultado global: INVÁLIDO
+
+════════════════════════════════════════════════════════════════════════════════
+PARTY 1
+════════════════════════════════════════════════════════════════════════════════
+❌ ERROR: SystemError("opening file \"/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/Ciphertexts.bt\"", 2, nothing)
+════════════════════════════════════════════════════════════════════════════════
+PARTY 2
+════════════════════════════════════════════════════════════════════════════════
+❌ ERROR: SystemError("opening file \"/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/proofs/Ciphertexts01.bt\"", 2, nothing)
+════════════════════════════════════════════════════════════════════════════════
+PARTY 3
+════════════════════════════════════════════════════════════════════════════════
+❌ ERROR: SystemError("opening file \"/home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50/dir/nizkp/default/proofs/Ciphertexts02.bt\"", 2, nothing)
+
+════════════════════════════════════════════════════════════════════════════════
+RESUMEN MULTI-PARTY
+════════════════════════════════════════════════════════════════════════════════
+Dataset: /home/soettamusb/ShuffleProofs.jl-main/datasets/home/onpe/onpe50
+Parties verificadas: 3
+Parties válidas: 0 / 3
+Resultado final: AL MENOS UNA INVÁLIDA
+
+Resultado guardado en /home/soettamusb/ShuffleProofs.jl-main/chequeo_detallado_result_onpe50_onpe501_20251231_113538.json

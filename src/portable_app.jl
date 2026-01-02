@@ -17,15 +17,17 @@ using .SignatureVerificationCLI
 
 const DEFAULT_RESULT_FILENAME = "chequeo_detallado_result.json"
 
-function generate_result_filename(dataset_path::AbstractString)
+function generate_result_filename(dataset_path::AbstractString, auxsid::AbstractString="default")
     # Extraer nombre del dataset (último directorio de la ruta)
-    dataset_name = basename(abspath(dataset_path))
+    # Asegurar que no haya slash final para que basename funcione
+    clean_path = rstrip(abspath(dataset_path), '/')
+    dataset_name = basename(clean_path)
     
     # Generar timestamp en formato YYYYMMDD_HHMMSS
     timestamp = Dates.format(now(), "yyyymmdd_HHMMSS")
     
-    # Formato: chequeo_detallado_result_<dataset>_<fechahora>.json
-    return "chequeo_detallado_result_$(dataset_name)_$(timestamp).json"
+    # Formato: chequeo_detallado_result_<dataset>_<auxsid>_<fechahora>.json
+    return "chequeo_detallado_result_$(dataset_name)_$(auxsid)_$(timestamp).json"
 end
 
 function hexstring(bytes::AbstractVector{<:Unsigned})
@@ -149,13 +151,13 @@ function default_dataset_path()
     isdir(candidate) ? candidate : nothing
 end
 
-function run_vmnv_testvectors(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle")
+function run_vmnv_testvectors(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle", auxsid::AbstractString = "default")
     vmnv_cmd = vmnv_path isa Cmd ? vmnv_path : Cmd([String(vmnv_path)])
     prot = joinpath(dataset, "protInfo.xml")
-    nizkp = joinpath(dataset, "dir", "nizkp", "default")
+    nizkp = joinpath(dataset, "dir", "nizkp", auxsid)
 
     isfile(prot) || error("No se encontró protInfo.xml en $dataset")
-    isdir(nizkp) || error("No se encontró directorio nizkp en $dataset")
+    isdir(nizkp) || error("No se encontró directorio nizkp en $dataset ($nizkp)")
 
     prot_arg, nizkp_arg = prot, nizkp
 
@@ -173,16 +175,24 @@ function run_vmnv_testvectors(dataset::AbstractString, vmnv_path; mode::Abstract
         end
     end
 
-    cmd = `$vmnv_cmd $normalized_mode -t der.rho,bas.h $prot_arg $nizkp_arg`
+    cmd = if auxsid != "default"
+        `$vmnv_cmd $normalized_mode -auxsid $auxsid -t der.rho,bas.h $prot_arg $nizkp_arg`
+    else
+        `$vmnv_cmd $normalized_mode -t der.rho,bas.h $prot_arg $nizkp_arg`
+    end
     # Capture both stdout and stderr: run the command and capture stderr into a buffer
     buf = IOBuffer()
-    run(pipeline(cmd, stdout=buf, stderr=buf))
+    process = run(pipeline(ignorestatus(cmd), stdout=buf, stderr=buf))
     output = String(take!(buf))
+    if process.exitcode != 0
+        println(stderr, "Error running vmnv: $output")
+        error("vmnv failed with exit code $(process.exitcode)")
+    end
     output
 end
 
-function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path; mode::AbstractString = "-shuffle") where {G}
-    output = run_vmnv_testvectors(dataset, vmnv_path; mode)
+function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path; mode::AbstractString = "-shuffle", auxsid::AbstractString = "default") where {G}
+    output = run_vmnv_testvectors(dataset, vmnv_path; mode, auxsid)
     # Eliminar secuencias ANSI que puedan aparecer en la salida del VM
     output = replace(output, r"\x1B\[[0-?]*[ -/]*[@-~]" => "")
     lines = split(output, '\n')
@@ -604,12 +614,12 @@ function variable_definitions()
     )
 end
 
-function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle")
+function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle", auxsid::AbstractString = "default")
     isdir(dataset) || error("Dataset no existe: $dataset")
 
     # Auto-detectar tipo de prueba y número de parties
-    type_file = joinpath(dataset, "dir", "nizkp", "default", "type")
-    threshold_file = joinpath(dataset, "dir", "nizkp", "default", "proofs", "activethreshold")
+    type_file = joinpath(dataset, "dir", "nizkp", auxsid, "type")
+    threshold_file = joinpath(dataset, "dir", "nizkp", auxsid, "proofs", "activethreshold")
     
     proof_type = "shuffling"
     num_parties = 1
@@ -634,13 +644,13 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
         @info "Auto-detectado modo -mix (pero es single-party)"
     end
 
-    sim = ShuffleProofs.load_verificatum_simulator(dataset)
+    sim = ShuffleProofs.load_verificatum_simulator(dataset; auxsid=auxsid)
     proposition = sim.proposition
     vproof = sim.proof
     proof = ShuffleProofs.PoSProof(vproof)
     verifier = sim.verifier
 
-    testvectors = obtain_testvectors(dataset, typeof(proposition.g), vmnv_path; mode)
+    testvectors = obtain_testvectors(dataset, typeof(proposition.g), vmnv_path; mode, auxsid)
     ρ = testvectors.ρ
     generators = testvectors.generators
 
@@ -664,6 +674,7 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
 
     Dict(
         "dataset" => dataset,
+        "auxsid" => auxsid,
         "multiparty" => false,
         "num_parties" => 1,
         "parameters" => Dict(
@@ -869,6 +880,9 @@ function cli_run(args::Vector{String})::Cint
     dataset_arg = isempty(args) ? nothing : first(args)
     # Segundo parámetro opcional: modo ('-shuffle' o '-mix')
     mode_arg = length(args) >= 2 ? args[2] : "-shuffle"
+    # Tercer parámetro opcional: auxsid
+    auxsid_arg = length(args) >= 3 ? args[3] : "default"
+
     dataset_path = isnothing(dataset_arg) ? default_dataset_path() : normpath(abspath(dataset_arg))
 
     if dataset_path === nothing
@@ -893,9 +907,10 @@ function cli_run(args::Vector{String})::Cint
         end
     end
 
-    result = detailed_chequeo(dataset_path, vmnv_path; mode = mode_arg)
+    result = detailed_chequeo(dataset_path, vmnv_path; mode = mode_arg, auxsid = auxsid_arg)
 
     println("Dataset: ", result["dataset"])
+    println("Session ID: ", auxsid_arg)
     
     # Verificar si es multi-party
     if get(result, "multiparty", false)
@@ -977,7 +992,7 @@ function cli_run(args::Vector{String})::Cint
         print_checks(result["checks"]["verificatum"])
     end
 
-    output_filename = generate_result_filename(dataset_path)
+    output_filename = generate_result_filename(dataset_path, auxsid_arg)
     output_path = joinpath(pwd(), output_filename)
     write_result(result, output_path)
 

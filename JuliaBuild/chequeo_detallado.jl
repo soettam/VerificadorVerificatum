@@ -12,10 +12,10 @@ using ShuffleProofs
 
 const PortableApp = ShuffleProofs.PortableApp
 
-function detailed_chequeo(dataset::AbstractString)
+function detailed_chequeo(dataset::AbstractString, auxsid::AbstractString="default")
     vmnv = PortableApp.find_vmnv_path()
     vmnv === nothing && error("No se encontró 'vmnv'. Configure Verificatum o copie mixnet/verificatum-vmn-3.1.0 en resources.")
-    PortableApp.detailed_chequeo(dataset, vmnv)
+    PortableApp.detailed_chequeo(dataset, vmnv; auxsid=auxsid)
 end
 
 print_checks(data) = PortableApp.print_checks(data)
