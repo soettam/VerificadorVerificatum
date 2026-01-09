@@ -3,5 +3,9 @@
   "scm.alwaysShowProviders": true,
   "git.openRepositoryInParentFolders": "always",
   "git.defaultRemote": "github",
-  "git.detectSubmodules": true
+  "git.detectSubmodules": true,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "http-omen-9100-",
+    "projectKey": "verificador"
+  }
 }
