@@ -635,7 +635,7 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
     # Si es multi-party, delegar a la función especializada
     if num_parties > 1
         @info "Detectado dataset multi-party con $num_parties parties. Verificando cada party..."
-        return detailed_chequeo_multiparty(dataset, vmnv_path, num_parties)
+        return detailed_chequeo_multiparty(dataset, vmnv_path, num_parties; auxsid=auxsid)
     end
     
     # Código original para single-party
@@ -705,7 +705,7 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
     )
 end
 
-function detailed_chequeo_multiparty(dataset::AbstractString, vmnv_path, num_parties::Int)
+function detailed_chequeo_multiparty(dataset::AbstractString, vmnv_path, num_parties::Int; auxsid::AbstractString="default")
     """
     Verifica un dataset multi-party, procesando cada party independientemente.
     En multi-party mixing, TODAS las parties comparten los mismos generadores globales,
@@ -714,12 +714,12 @@ function detailed_chequeo_multiparty(dataset::AbstractString, vmnv_path, num_par
     
     # Extraer generadores GLOBALES con vmnv -mix (compartidos por todas las parties)
     @info "Extrayendo generadores globales con vmnv -mix..."
-    sim = ShuffleProofs.load_verificatum_simulator(dataset)
+    sim = ShuffleProofs.load_verificatum_simulator(dataset; auxsid=auxsid)
     base_g = sim.proposition.g
     base_pk = sim.proposition.pk
     verifier = sim.verifier
     
-    testvectors_global = obtain_testvectors(dataset, typeof(base_g), vmnv_path; mode = "-mix")
+    testvectors_global = obtain_testvectors(dataset, typeof(base_g), vmnv_path; mode = "-mix", auxsid=auxsid)
     ρ_global = testvectors_global.ρ
     generators_global = testvectors_global.generators
     
@@ -733,13 +733,13 @@ function detailed_chequeo_multiparty(dataset::AbstractString, vmnv_path, num_par
         
         try
             # Cargar la prueba específica de esta party
-            proofs_dir = joinpath(dataset, "dir", "nizkp", "default", "proofs")
+            proofs_dir = joinpath(dataset, "dir", "nizkp", auxsid, "proofs")
             vproof = ShuffleProofs.load_verificatum_proof(proofs_dir, base_g; party_id)
             proof = ShuffleProofs.PoSProof(vproof)
             
             # Cargar ciphertexts específicos de esta party
-            input_ciphertexts = ShuffleProofs.load_party_input_ciphertexts(dataset, base_g, party_id, num_parties)
-            output_ciphertexts = ShuffleProofs.load_party_output_ciphertexts(dataset, base_g, party_id, num_parties)
+            input_ciphertexts = ShuffleProofs.load_party_input_ciphertexts(dataset, base_g, party_id, num_parties, auxsid)
+            output_ciphertexts = ShuffleProofs.load_party_output_ciphertexts(dataset, base_g, party_id, num_parties, auxsid)
             
             @info "Party $party_id - Input: $(length(input_ciphertexts)) ciphertexts, Output: $(length(output_ciphertexts)) ciphertexts"
             
@@ -1048,18 +1048,23 @@ function verify_signatures_cli(args::Vector{String})
     # Parsear argumentos
     verbose = true
     dataset_path = ""
+    auxsid = nothing
     
     for arg in args
         if arg in ["--quiet", "-q"]
             verbose = false
         elseif !startswith(arg, "-")
-            dataset_path = arg
+            if isempty(dataset_path)
+                dataset_path = arg
+            elseif isnothing(auxsid)
+                auxsid = arg
+            end
         end
     end
     
     if isempty(dataset_path)
         println("[ERROR] Debe especificar la ruta del dataset")
-        println("   Uso: verificar_firmas <dataset_path>")
+        println("   Uso: verificar_firmas <dataset_path> [auxsid]")
         println("   Ejecute con --help para más información")
         return 1
     end
@@ -1072,7 +1077,7 @@ function verify_signatures_cli(args::Vector{String})
     # Verificar dataset usando la función del módulo compartido
     try
         result = SignatureVerificationCLI.verify_dataset_signatures(
-            dataset_path, SignatureVerifier, ByteTreeModule; verbose=verbose
+            dataset_path, SignatureVerifier, ByteTreeModule; verbose=verbose, auxsid=auxsid
         )
         
         # Retornar código de salida apropiado
