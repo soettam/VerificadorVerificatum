@@ -25,15 +25,34 @@ using PackageCompiler
 dist_root = joinpath(project_root, Sys.iswindows() ? "distwindows" : "dist")
 app_dir = joinpath(dist_root, "VerificadorShuffleProofs")
 
+# Algunos artefactos en Windows quedan como solo lectura y bloquean rm/chmod durante builds incrementales.
+function clear_readonly!(path::AbstractString)
+    Sys.iswindows() || return
+    ispath(path) || return
+
+    try
+        if isdir(path)
+            pattern = joinpath(path, "*.*")
+            run(Cmd(["cmd", "/c", "attrib", "-R", pattern, "/S", "/D"]))
+        else
+            run(Cmd(["cmd", "/c", "attrib", "-R", path]))
+        end
+    catch err
+        @warn "[build] No se pudo limpiar atributos de solo lectura" path err
+    end
+end
+
 clean_requested = any(arg -> arg in ("--clean", "-c"), ARGS) || get(ENV, "SHUFFLEPROOFS_CLEAN", "0") == "1"
 has_previous_build = isdir(joinpath(app_dir, "bin"))
 incremental_build = has_previous_build && !clean_requested
 
 if clean_requested && isdir(app_dir)
     println("[build] Limpiando build anterior en $app_dir")
+    clear_readonly!(app_dir)
     rm(app_dir; recursive = true, force = true)
     incremental_build = false
 end
+isdir(app_dir) && clear_readonly!(app_dir)
 
 println("[build] Modo incremental: $(incremental_build)")
 
@@ -51,6 +70,8 @@ create_app(
     force = true,
     incremental = incremental_build
 )
+
+clear_readonly!(app_dir)
 
 resources_dir = joinpath(app_dir, "resources")
 mkpath(resources_dir)
