@@ -7,7 +7,7 @@ module SignatureVerificationCLI
 using Printf
 
 """
-    verify_dataset_signatures(dataset_path::String, SignatureVerifier, ByteTreeModule; verbose::Bool=true)
+    verify_dataset_signatures(dataset_path::String, SignatureVerifier, ByteTreeModule; verbose::Bool=true, auxsid::Union{String, Nothing}=nothing)
 
 Verifica todas las firmas RSA en un dataset Verificatum.
 
@@ -16,11 +16,12 @@ Verifica todas las firmas RSA en un dataset Verificatum.
 - `SignatureVerifier`: Módulo SignatureVerifier
 - `ByteTreeModule`: Módulo ByteTreeModule  
 - `verbose`: Mostrar información detallada (default: true)
+- `auxsid`: Filtra firmas por ID de sesión auxiliar (opcional). Si se omite, verifica todo.
 
 # Retorna
 - Diccionario con estadísticas: `valid`, `invalid`, `errors`, `missing`, `total`, `success_rate`
 """
-function verify_dataset_signatures(dataset_path::String, SignatureVerifier, ByteTreeModule; verbose::Bool=true)
+function verify_dataset_signatures(dataset_path::String, SignatureVerifier, ByteTreeModule; verbose::Bool=true, auxsid::Union{String, Nothing}=nothing)
     
     if !isdir(dataset_path)
         error("[ERROR] El dataset no existe: $dataset_path")
@@ -28,6 +29,9 @@ function verify_dataset_signatures(dataset_path::String, SignatureVerifier, Byte
     
     verbose && println("=" ^ 80)
     verbose && println("VERIFICACIÓN DE FIRMAS RSA - ByteTree")
+    if !isnothing(auxsid)
+        verbose && println("Filtro de sesión (auxsid): $auxsid")
+    end
     verbose && println("=" ^ 80)
     verbose && println()
     verbose && println("Dataset: $dataset_path")
@@ -78,13 +82,38 @@ function verify_dataset_signatures(dataset_path::String, SignatureVerifier, Byte
     for (root, dirs, files) in walkdir(httproot_dir)
         for file in files
             if endswith(file, ".sig.1")
-                push!(sig_files, joinpath(root, file))
+                full_path = joinpath(root, file)
+
+                # Filtrar por auxsid si está definido
+                if !isnothing(auxsid)
+                    # Heurística: Si el path contiene un directorio con "Session", 
+                    # debe coincidir con el auxsid solicitado.
+                    # Archivos globales (sin "Session" en la ruta) se incluyen siempre.
+                    include_file = true
+                    parts = split(full_path, Base.Filesystem.path_separator)
+                    for part in parts
+                        if occursin("Session", part)
+                            # Verificatum usa notación con puntos, ej: Session.default
+                            if !endswith(part, "." * auxsid)
+                                include_file = false
+                                break
+                            end
+                        end
+                    end
+                    
+                    if !include_file
+                        continue
+                    end
+                end
+
+                push!(sig_files, full_path)
             end
         end
     end
     
     if isempty(sig_files)
-        println("[WARN] No se encontraron archivos .sig.1 en httproot/")
+        msg_extra = isnothing(auxsid) ? "" : " para auxsid='$auxsid'"
+        println("[WARN] No se encontraron archivos .sig.1 en httproot/$msg_extra")
         return Dict("valid" => 0, "invalid" => 0, "errors" => 0, "missing" => 0, "total" => 0, "success_rate" => 0.0)
     end
     
@@ -96,8 +125,11 @@ function verify_dataset_signatures(dataset_path::String, SignatureVerifier, Byte
     verbose && println("-" ^ 80)
     verbose && println()
     
-    # Usar la llave de la primera party
-    key_hex = public_keys[1].key_hex
+    # Crear mapa de llaves por Party ID para soporte multiparty
+    keys_map = Dict{Int, String}()
+    for k in public_keys
+        keys_map[k.party_id] = k.key_hex
+    end
     
     valid_count = 0
     invalid_count = 0
@@ -185,9 +217,26 @@ function verify_dataset_signatures(dataset_path::String, SignatureVerifier, Byte
                 println("  ├─ FullMessage serializado: $(length(serialized)) bytes")
             end
             
+            # Obtener llave correspondiente a la party que firmó
+            pid = tryparse(Int, party_id)
+            current_key_hex = ""
+            
+            if !isnothing(pid) && haskey(keys_map, pid)
+                current_key_hex = keys_map[pid]
+            elseif length(keys_map) == 1
+                # Fallback seguro para single party
+                current_key_hex = first(values(keys_map))
+            else
+                if verbose 
+                   println("  └─ [ERROR] No se encontró clave pública para Party ID: $party_id")
+                end
+                error_count += 1
+                continue
+            end
+
             # Verificar con doble hashing
             is_valid = SignatureVerifier.verify_rsa_sha256_signature(
-                serialized, signature, key_hex, double_hash=true
+                serialized, signature, current_key_hex, double_hash=true
             )
             
             if is_valid

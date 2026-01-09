@@ -53,12 +53,12 @@ function main()
         ╚══════════════════════════════════════════════════════════════╝
         
         Uso:
-          julia verificar_firmas.jl <dataset_path> [options]
+          julia verificar_firmas.jl <dataset_path> [auxsid] [options]
         
         Ejemplos:
           julia verificar_firmas.jl datasets/onpedecrypt
+          julia verificar_firmas.jl datasets/onpedecrypt onpeprueba
           julia verificar_firmas.jl datasets/onpe100
-          julia verificar_firmas.jl ../datasets/custom_dataset
         
         Opciones:
           --quiet, -q    Modo silencioso (solo muestra resumen)
@@ -67,6 +67,9 @@ function main()
         Descripción:
           Verifica firmas RSA-2048 en formato ByteTree según el
           protocolo Verificatum BulletinBoard.
+          
+          Puede especificar un 'auxsid' opcional para verificar solo
+          las firmas correspondientes a una sesión específica.
           
           El dataset debe contener:
             * protInfo.xml (con llaves RSA)
@@ -80,24 +83,25 @@ function main()
     
     # Parsear argumentos
     verbose = true
-    dataset_path = ""
+    positional_args = String[]
     
     for arg in ARGS
         if arg in ["--quiet", "-q"]
             verbose = false
-        elseif arg in ["--quiet", "-q"]
-            verbose = false
         elseif !startswith(arg, "-")
-            dataset_path = arg
+            push!(positional_args, arg)
         end
     end
     
-    if isempty(dataset_path)
+    if isempty(positional_args)
         println("[ERROR] Debe especificar la ruta del dataset")
-        println("   Uso: julia verificar_firmas.jl <dataset_path>")
+        println("   Uso: julia verificar_firmas.jl <dataset_path> [auxsid]")
         println("   Ejecute con --help para más información")
         return 1
     end
+    
+    dataset_path = positional_args[1]
+    auxsid = length(positional_args) > 1 ? positional_args[2] : nothing
     
     # Normalizar path
     if !isabspath(dataset_path)
@@ -108,7 +112,7 @@ function main()
     # Verificar dataset usando el módulo compartido
     try
         result = SignatureVerificationCLI.verify_dataset_signatures(
-            dataset_path, SignatureVerifier, ByteTreeModule; verbose=verbose
+            dataset_path, SignatureVerifier, ByteTreeModule; verbose=verbose, auxsid=auxsid
         )
         
         # Retornar código de salida apropiado
