@@ -345,18 +345,12 @@ Estos módulos implementan:
 
 ### Uso del verificador
 
-```bash
-# Verificar todas las firmas de un dataset
-./dist/VerificadorShuffleProofs/bin/verificar_firmas datasets/onpedecrypt
+Para consultar los comandos específicos de ejecución, revisa el archivo de instrucciones correspondiente a tu sistema operativo:
 
-# Salida:
-# Total de archivos analizados: 15
-# [OK]   Firmas válidas:        15
-# [FAIL] Firmas inválidas:      0
-# Tasa de éxito: 100.0%
-```
+- **Ubuntu (Linux):** Ver `README_UBUNTU.md` (Sección: "Verificador de Firmas RSA")
+- **Windows:** Ver `README_WINDOWS.md` (Sección: "Verificador de Firmas RSA")
 
-Para más detalles técnicos, consultar:
+Para más detalles técnicos sobre la implementación, consultar:
 - **Código ByteTree:** `src/bytetree.jl`
 - **Código verificación:** `src/signature_verifier.jl`
 
