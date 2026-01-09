@@ -204,8 +204,13 @@ El verificador también incluye un ejecutable independiente para verificar firma
 
 **Sintaxis:**
 ```bash
-verificar_firmas <directorio_dataset> [--quiet]
+verificar_firmas <directorio_dataset> [auxsid] [--quiet]
 ```
+
+**Parámetros:**
+- `<directorio_dataset>`: Ruta al directorio raíz del dataset (contiene `protInfo.xml`).
+- `[auxsid]` (Opcional): Nombre de la sesión específica a verificar (ej: `onpeprueba`). Si se omite, verifica "default" o todas las sesiones encontradas.
+- `[--quiet]` (Opcional): Modo silencioso, reduce la salida en consola.
 
 **Ejemplos:**
 
@@ -214,6 +219,9 @@ cd ~/VerificadorVerificatum
 
 # Verificar todas las firmas de un dataset (modo verbose)
 ./dist/VerificadorShuffleProofs/bin/verificar_firmas ./datasets/onpedecrypt
+
+# Verificar una sesión específica (ej: onpeprueba) dentro del dataset
+./dist/VerificadorShuffleProofs/bin/verificar_firmas ./datasets/onpedecrypt onpeprueba
 
 # Modo silencioso (solo muestra resumen)
 ./dist/VerificadorShuffleProofs/bin/verificar_firmas ./datasets/onpe100 --quiet

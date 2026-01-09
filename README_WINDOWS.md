@@ -298,8 +298,13 @@ El verificador también incluye un ejecutable independiente para verificar firma
 
 **Sintaxis:**
 ```powershell
-verificar_firmas.exe <directorio_dataset> [--quiet]
+verificar_firmas.exe <directorio_dataset> [auxsid] [--quiet]
 ```
+
+**Parámetros:**
+- `<directorio_dataset>`: Ruta al directorio raíz del dataset (contiene `protInfo.xml`).
+- `[auxsid]` (Opcional): Nombre de la sesión específica a verificar (ej: `onpeprueba`). Si se omite, verifica "default" o todas las sesiones encontradas.
+- `[--quiet]` (Opcional): Modo silencioso, reduce la salida en consola.
 
 **Ejemplos:**
 
@@ -308,6 +313,9 @@ cd C:\Verificador
 
 # Verificar todas las firmas de un dataset (modo verbose)
 .\distwindows\VerificadorShuffleProofs\bin\verificar_firmas.exe .\datasets\onpedecrypt
+
+# Verificar una sesión específica (ej: onpeprueba) dentro del dataset
+.\distwindows\VerificadorShuffleProofs\bin\verificar_firmas.exe .\datasets\onpedecrypt onpeprueba
 
 # Modo silencioso (solo muestra resumen)
 .\distwindows\VerificadorShuffleProofs\bin\verificar_firmas.exe .\datasets\onpe100 --quiet
