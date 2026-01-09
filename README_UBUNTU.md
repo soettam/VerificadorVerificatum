@@ -142,16 +142,23 @@ julia --project=. JuliaBuild/build_portable_app.jl
 
 **Sintaxis general:**
 ```bash
-verificador <directorio_dataset> -shuffle|-mix
+verificador <directorio_dataset> [-shuffle|-mix] [auxsid]
 ```
 
-**Importante:** El directorio del dataset debe ir **antes** del modo (`-shuffle` o `-mix`).
+**Importante:** El directorio del dataset debe ir **antes** del modo (`-shuffle` o `-mix`). El parámetro `auxsid` es opcional y permite especificar una sesión concreta (por defecto es "default").
 
 ## Verificar un dataset single-party (modo shuffle)
 
 ```bash
 cd ~/VerificadorVerificatum
 ./dist/VerificadorShuffleProofs/bin/verificador ./datasets/onpesinprecomp -shuffle
+```
+
+## Verificar una sesión específica (ej: onpeprueba)
+
+```bash
+cd ~/VerificadorVerificatum
+./dist/VerificadorShuffleProofs/bin/verificador ./datasets/onpedecrypt -mix onpeprueba
 ```
 
 ## Verificar un dataset multi-party (modo mix)
@@ -180,13 +187,14 @@ cd ~/VerificadorVerificatum/dist/VerificadorShuffleProofs
 
 El verificador genera un archivo JSON con los resultados en el directorio actual:
 
-**Archivo generado:** `chequeo_detallado_result_<dataset>_<fechahora>.json`
+**Archivo generado:** `chequeo_detallado_result_<dataset>_<auxsid>_<fechahora>.json`
 
 Donde:
 - `<dataset>`: Nombre del dataset verificado (ej: `onpe3`, `onpe100`)
+- `<auxsid>`: ID de la sesión verificada (ej: `default`, `onpeprueba`)
 - `<fechahora>`: Timestamp en formato `YYYYMMDD_HHMMSS`
 
-**Ejemplo:** `chequeo_detallado_result_onpe3_20251028_163045.json`
+**Ejemplo:** `chequeo_detallado_result_onpe3_default_20251028_163045.json`
 
 **Contenido:**
 - Parámetros de la verificación (ρ, generadores, semilla)
