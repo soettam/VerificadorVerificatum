@@ -13,4 +13,5 @@ verification_workspace/
 # Ignorar carpeta docs
 reportes/
 docs/
-PruebaVM/mixnet/
+PruebaVM/
+mixnet/
