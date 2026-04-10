@@ -11,6 +11,7 @@ import SigmaProofs: prove, verify, proof_type
 include("utils.jl")
 include("prover.jl")
 include("verifier.jl")
+include("verificatum_native.jl")
 
 SigmaProofs.proof_type(::Type{Shuffle{G, N}}) where {G <: Group, N} = PoSProof{G, N} 
 SigmaProofs.proof_type(::Type{Shuffle}) = PoSProof #

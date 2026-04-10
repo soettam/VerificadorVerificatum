@@ -97,9 +97,9 @@ function copytree(src::AbstractString, dest::AbstractString)
     end
 end
 
-# El verificador usa vmn del sistema (instalado en /usr/local/bin/vmn o disponible en PATH)
-# No se empaqueta Verificatum en el ejecutable portable
-println("[build] ℹ El ejecutable usará vmn del sistema")
+# La verificación de shuffle es nativa en Julia.
+# No se requiere empaquetar ni instalar Verificatum para el flujo soportado.
+println("[build] ℹ El ejecutable usará el backend nativo de verificación")
 
 sample_dataset = joinpath(project_root, "test", "validation_sample", "verificatum")
 if isdir(sample_dataset)

@@ -9,7 +9,7 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 1. [Requisitos del sistema](#requisitos-del-sistema)
 2. [Instalación paso a paso](#instalación-paso-a-paso)
    - [Paso 1: Instalar Julia](#paso-1-instalar-julia)
-   - [Paso 2: Instalar Verificatum en WSL](#paso-2-instalar-verificatum-en-wsl)
+   - [Paso 2: Backend nativo de verificación](#paso-2-backend-nativo-de-verificación)
    - [Paso 3: Clonar este repositorio](#paso-3-clonar-este-repositorio)
    - [Paso 4: Instalar dependencias de Julia](#paso-4-instalar-dependencias-de-julia)
 3. [Compilación del verificador portable](#compilación-del-verificador-portable)
@@ -22,30 +22,26 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 # Requisitos del sistema
 
 **Sistema operativo:**
-- **Windows 10/11** con WSL 2 (Windows Subsystem for Linux)
+- **Windows 10/11**
 
 **Software necesario:**
 - **Julia 1.11.7** (instalado nativamente en Windows)
-- **Verificatum VMN 3.1.0** (instalado en WSL Ubuntu)
-- **WSL 2 con Ubuntu** (requerido para Verificatum)
 - **Git** (para clonar el repositorio)
 
 **Hardware:**
 - **Memoria RAM:** Mínimo 8 GB **requeridos para compilación** (16 GB recomendado para datasets grandes)
   - **Importante:** PackageCompiler necesita al menos 8 GB de RAM disponible durante la compilación del verificador portable. Con menos RAM, la compilación fallará por falta de memoria (OOM).
-- **Espacio en disco:** ~2 GB (para Julia, Verificatum y dependencias)
+- **Espacio en disco:** ~2 GB para dependencias de Julia y datasets, y aproximadamente ~1.5 GB para el build portable generado
 
-**Nota importante:** Julia se instala en Windows nativamente, pero Verificatum requiere WSL 2 con Ubuntu.
+**Nota importante:** La verificación de shuffle ahora es totalmente nativa en Julia. No requiere WSL ni una instalación externa de Verificatum para verificar datasets.
 
 ---
 
 # Requisitos para ejecutable portable
 
-**IMPORTANTE:** Si estás usando el ejecutable portable, necesitas tener instalado y configurado:
-- **WSL 2 con Ubuntu**
-- **Verificatum instalado en WSL**
+**IMPORTANTE:** Si estás usando el ejecutable portable, no necesitas instalar Julia, WSL ni Verificatum en la máquina destino.
 
-El verificador portable incluye Julia y todas las dependencias necesarias, **excepto Verificatum**, que debe estar instalado en WSL.
+El verificador portable incluye el runtime y las dependencias necesarias para verificar los datasets soportados por este proyecto. Solo necesitas copiar la carpeta generada y ejecutar `verificador.exe`.
 
 ---
 
@@ -80,21 +76,7 @@ El verificador portable incluye Julia y todas las dependencias necesarias, **exc
    ```
    Debe mostrar: julia version 1.11.7
 
-4. **Instalar WSL 2** (necesario para Verificatum):
-   
-   Abrir **CMD como Administrador** (clic derecho > "Ejecutar como administrador"):
-   ```cmd
-   wsl --install -d Ubuntu
-   ```
-   
-   **Nota importante:** Si es la primera vez que instalas WSL, el comando anterior solo instalará los componentes de WSL pero no la distribución Ubuntu. Después de reiniciar el equipo, ejecuta nuevamente el mismo comando para instalar Ubuntu:
-   ```cmd
-   wsl --install -d Ubuntu
-   ```
-
-5. **Reiniciar el equipo**
-
-6. **Habilitar rutas largas en Windows** (IMPORTANTE - evita errores ENAMETOOLONG):
+4. **Habilitar rutas largas en Windows** (IMPORTANTE - evita errores ENAMETOOLONG):
    
    Abrir **CMD como Administrador**:
    ```cmd
@@ -105,38 +87,15 @@ El verificador portable incluye Julia y todas las dependencias necesarias, **exc
    
    **Nota:** Si el comando `git config` falla porque Git no está instalado, primero instala Git siguiendo las instrucciones del [Paso 3: Clonar este repositorio](#paso-3-clonar-este-repositorio) (punto 1).
 
-## Paso 2: Instalar Verificatum en WSL
+## Paso 2: Backend nativo de verificación
 
-**Importante:** Verificatum solo funciona en Linux, por lo que debe instalarse en WSL Ubuntu.
+No necesitas instalar Verificatum ni configurar WSL para verificar datasets con este proyecto.
 
-1. **Abrir WSL Ubuntu**:
-   
-   Desde **CMD** o **PowerShell**, ejecutar:
-   ```cmd
-   wsl
-   ```
-   
-   O buscar "Ubuntu" en el menú de inicio de Windows
+El verificador reconstruye `der.rho` y `bas.h` de forma nativa en Julia a partir de `protInfo.xml` y del contenido del dataset. Eso reemplaza el flujo anterior que invocaba `vmnv` desde WSL.
 
-2. **Instalar dependencias y Verificatum** en WSL Ubuntu:
-   ```bash
-   # 1. Instalar dependencias del sistema (incluye gcc/g++ para compilación)
-   sudo apt update
-   sudo apt-get install --yes gcc g++ make m4 cpp libtool automake autoconf libgmp-dev openjdk-21-jdk
-   
-   # 2. Instalar Verificatum desde el directorio home
-   cd ~
-   wget https://www.verificatum.org/files/verificatum-vmn-3.1.0-full.tar.gz  
-   tar xvfz verificatum-vmn-3.1.0-full.tar.gz
-   cd verificatum-vmn-3.1.0-full
-   make install
-   
-   # 3. Verificar instalación
-   vmn -version
-   # Debe mostrar la versión de Verificatum
-   ```
-
-**Documentación oficial completa:** https://www.verificatum.org
+Solo necesitas:
+- Un dataset compatible con la estructura documentada en este repositorio.
+- Dependencias de Julia instaladas con `Pkg.instantiate()`.
 
 ## Paso 3: Clonar este repositorio
 
@@ -226,7 +185,7 @@ julia --project=. JuliaBuild\build_portable_app.jl
 
 # Ejecución del verificador
 
-** REQUISITO IMPORTANTE:** Requiere **WSL 2 con Ubuntu** y **Verificatum instalado en WSL** para funcionar correctamente.
+**Requisito importante:** El dataset debe contener `protInfo.xml` y una prueba de shuffle completa en `dir\nizkp\<auxsid>\`.
 
 **Sintaxis general:**
 ```powershell
@@ -272,10 +231,9 @@ cd C:\Verificador\distwindows\VerificadorShuffleProofs
 
 * Para todas estas datasets de ejemplo las carpetas raices son onpesinprecomp, onpe100 y onpe3.
 
-**Importante:** 
-- El verificador **requiere WSL 2 con Ubuntu** y **Verificatum instalado en WSL** para funcionar
-- Detecta automáticamente WSL y ejecuta `vmn` desde WSL cuando sea necesario
-- Si encuentras errores relacionados con `vmn`, verifica que WSL esté instalado y Verificatum configurado correctamente en Ubuntu dentro de WSL
+**Importante:**
+- El verificador ya no usa `vmn` ni `vmnv` para derivar `ρ` y las bases independientes.
+- Si un dataset falla, normalmente se debe a estructura incompleta, `auxsid` incorrecto o archivos de prueba faltantes.
 
 ## Salida del verificador
 
@@ -398,25 +356,20 @@ Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name
 
 Reiniciar para aplicar cambios.
 
-## Error: "No se encontró vmn" en Windows
+## Error: dataset inválido o incompleto
 
-**Causa:** Verificatum no está instalado en WSL o no se puede acceder.
-
-**Solución:**
-1. Abrir **CMD** o **PowerShell** y ejecutar: `wsl`
-2. Verificar instalación: `vmn -version`
-3. Si no está instalado, instalar Verificatum dentro de WSL siguiendo [Paso 2](#paso-2-instalar-verificatum-en-wsl)
-
-## Error: "No se pudo extraer der.rho"
-
-**Causa:** La salida de `vmnv` no tiene el formato esperado o el dataset es inválido.
+**Causa:** El dataset no contiene una prueba de shuffle completa o el `auxsid` no corresponde a una sesión verificable.
 
 **Solución:**
 1. Verificar estructura del dataset (debe tener `protInfo.xml` y `dir\nizkp\default\`)
 2. Comprobar el modo correcto:
    - Si `type` es "shuffling" -> usar `-shuffle`
    - Si `type` es "mixing" -> usar `-mix`
-3. Ver log crudo en: `<dataset>\dir\nizkp\tmp_logs\vmnv_raw_output_global.log`
+3. Confirmar que existan los archivos de prueba necesarios:
+   - `PermutationCommitmentXX.bt`
+   - `PoSCommitmentXX.bt`
+   - `PoSReplyXX.bt`
+4. Si el dataset solo contiene archivos de precomputación (`PoSC*`, `CCPoS*`), este flujo no cubre esa etapa.
 
 ## Error al compilar: "Package JSON not found"
 
@@ -446,13 +399,12 @@ julia --project=. JuliaBuild\build_portable_app.jl
 Si estás en una **PC nueva desde cero**, asegúrate de haber completado **todos estos pasos** antes de compilar:
 
 1. Julia 1.11.7 instalado → Ver [Paso 1](#paso-1-instalar-julia)
-2. Rutas largas habilitadas → Ver [Paso 1](#paso-1-instalar-julia) punto 6
+2. Rutas largas habilitadas → Ver [Paso 1](#paso-1-instalar-julia) punto 4
 3. Git instalado → Ver [Paso 3](#paso-3-clonar-este-repositorio) punto 1
-4. WSL 2 con Ubuntu → Ver [Paso 1](#paso-1-instalar-julia) punto 4-5
-5. Verificatum en WSL → Ver [Paso 2](#paso-2-instalar-verificatum-en-wsl)
-6. Repositorio clonado → Ver [Paso 3](#paso-3-clonar-este-repositorio)
+4. Repositorio clonado → Ver [Paso 3](#paso-3-clonar-este-repositorio)
+5. Dependencias de Julia instaladas → Ver [Paso 4](#paso-4-instalar-dependencias-de-julia)
 
-**Solo después** de completar estos 6 pasos, ejecutar:
+**Solo después** de completar estos 5 pasos, ejecutar:
 ```powershell
 cd C:\Verificador
 julia --project=. -e "using Pkg; Pkg.resolve(); Pkg.instantiate()"
@@ -471,32 +423,14 @@ O descargar e instalar Git para Windows desde: https://git-scm.com/download/win
 
 # Detalles adicionales
 
-## Extraer rho y bases con vmnv (desde WSL)
+## Derivación nativa de rho y bases
 
-**Importante:** Estos comandos deben ejecutarse desde WSL Ubuntu, ya que Verificatum solo está instalado allí.
+El verificador deriva `der.rho` y `bas.h` directamente en Julia a partir de:
+- `protInfo.xml`
+- `dir\nizkp\<auxsid>\`
+- los archivos de prueba `PermutationCommitmentXX.bt`, `PoSCommitmentXX.bt` y `PoSReplyXX.bt`
 
-1. **Abrir WSL Ubuntu**:
-   
-   Desde **CMD** o **PowerShell**, ejecutar:
-   ```cmd
-   wsl
-   ```
-
-2. **Ejecutar vmnv según el modo**:
-
-**Para modo mixing:**
-```bash
-/usr/local/bin/vmnv -mix -t der.rho,bas.h \
-    /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
-```
-
-**Para modo shuffling:**
-```bash
-/usr/local/bin/vmnv -shuffle -t der.rho,bas.h \
-    /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
-```
-
-**Nota:** Si tus archivos están en Windows (por ejemplo `C:\datasets\...`), puedes accederlos desde WSL usando: `/mnt/c/datasets/...`
+No hay que ejecutar `vmnv` manualmente para el flujo soportado por este repositorio.
 
 ## Archivos usados para la verificación
 

@@ -2,6 +2,8 @@
 
 Este documento describe en detalle qué verifica el software, la estructura de datos requerida y las referencias técnicas del verificador.
 
+Nota operativa: la verificación de shuffle derivada por este proyecto ya no depende de `vmn` o `vmnv`. Los valores `der.rho` y `bas.h` se reconstruyen nativamente en Julia a partir del dataset.
+
 ---
 
 # Tabla de contenidos

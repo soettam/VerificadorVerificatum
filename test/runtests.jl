@@ -18,6 +18,10 @@ end
     include("verificatum-verifier.jl")
 end
 
+@safetestset "Verificatum native derivation" begin
+    include("test_verificatum_native.jl")
+end
+
 @safetestset "Verifiactum verifier compatible proof generation" begin
     include("verificatum-prover.jl")
 end

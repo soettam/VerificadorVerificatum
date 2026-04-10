@@ -9,7 +9,7 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 1. [Requisitos del sistema](#requisitos-del-sistema)
 2. [Instalación paso a paso](#instalación-paso-a-paso)
    - [Paso 1: Instalar Julia](#paso-1-instalar-julia)
-   - [Paso 2: Instalar Verificatum](#paso-2-instalar-verificatum)
+   - [Paso 2: Backend nativo de verificación](#paso-2-backend-nativo-de-verificación)
    - [Paso 3: Clonar este repositorio](#paso-3-clonar-este-repositorio)
    - [Paso 4: Instalar dependencias de Julia](#paso-4-instalar-dependencias-de-julia)
 3. [Compilación del verificador portable](#compilación-del-verificador-portable)
@@ -26,14 +26,15 @@ Verificador de pruebas de shuffle (barajado verificable) compatible con Verifica
 
 **Software necesario:**
 - **Julia 1.11.7**
-- **Verificatum VMN 3.1.0**
 - **Git** (para clonar el repositorio)
 - **g++** (compilador C++, requerido para PackageCompiler)
 
 **Hardware:**
 - **Memoria RAM:** Mínimo 8 GB **requeridos para compilación** (16 GB recomendado para datasets grandes)
   - **Importante:** PackageCompiler necesita al menos 8 GB de RAM disponible durante la compilación del verificador portable. Con menos RAM, la compilación fallará por falta de memoria (OOM).
-- **Espacio en disco:** ~2 GB (para Julia, Verificatum y dependencias)
+- **Espacio en disco:** ~2 GB para dependencias y datasets, y aproximadamente ~1.5 GB para el build portable generado
+
+**Nota importante:** La verificación de shuffle es nativa en Julia. No hace falta instalar Verificatum para verificar datasets con este proyecto.
 
 ---
 
@@ -61,29 +62,15 @@ julia --version
 # Debe mostrar: julia version 1.11.7
 ```
 
-## Paso 2: Instalar Verificatum
+## Paso 2: Backend nativo de verificación
 
-Verificatum es necesario para extraer `der.rho` y las bases independientes (`bas.h`) usadas en la verificación.
+No necesitas instalar Verificatum para verificar datasets con este proyecto.
 
-```bash
-# 1. Instalar dependencias adicionales de Verificatum
-# Nota: gcc, g++ y make ya deberían estar instalados del Paso 1
-sudo apt update
-sudo apt-get install --yes make m4 cpp libtool automake autoconf libgmp-dev openjdk-21-jdk
+El verificador reconstruye `der.rho` y `bas.h` directamente en Julia a partir de `protInfo.xml` y del contenido del dataset. Eso reemplaza la extracción manual anterior con `vmnv`.
 
-# 2. Instalar Verificatum desde el directorio home
-cd ~
-wget https://www.verificatum.org/files/verificatum-vmn-3.1.0-full.tar.gz  
-tar xvfz verificatum-vmn-3.1.0-full.tar.gz
-cd verificatum-vmn-3.1.0-full
-make install
-
-# 3. Verificar instalación
-vmn -version
-# Debe mostrar la versión de Verificatum
-```
-
-**Documentación oficial completa:** https://www.verificatum.org
+Solo necesitas:
+- Un dataset compatible con la estructura documentada.
+- Dependencias de Julia instaladas con `Pkg.instantiate()`.
 
 ## Paso 3: Clonar este repositorio
 
@@ -275,26 +262,20 @@ cd ~/VerificadorVerificatum
 **Solución:**
 - Clonar el repositorio en el sistema de archivos local (no en montajes de red)
 
-## Error: "No se encontró vmn" o "No se encontró vmnv"
+## Error: dataset inválido o incompleto
 
-**Causa:** Verificatum no está instalado o no está en el PATH.
-
-**Solución:**
-1. Verificar instalación: `vmn -version`
-2. Si no está instalado, seguir [Paso 2: Instalar Verificatum](#paso-2-instalar-verificatum)
-
-**Nota:** El comando correcto es `vmn -version` (con un solo guion), no `vmnv --version`.
-
-## Error: "No se pudo extraer der.rho"
-
-**Causa:** La salida de `vmnv` no tiene el formato esperado o el dataset es inválido.
+**Causa:** El dataset no contiene una prueba de shuffle completa o el `auxsid` no corresponde a una sesión verificable.
 
 **Solución:**
 1. Verificar estructura del dataset (debe tener `protInfo.xml` y `dir/nizkp/default/`)
 2. Comprobar el modo correcto:
    - Si `type` es "shuffling" -> usar `-shuffle`
    - Si `type` es "mixing" -> usar `-mix`
-3. Ver log crudo en: `<dataset>/dir/nizkp/tmp_logs/vmnv_raw_output_global.log`
+3. Confirmar que existan los archivos de prueba necesarios:
+   - `PermutationCommitmentXX.bt`
+   - `PoSCommitmentXX.bt`
+   - `PoSReplyXX.bt`
+4. Si el dataset solo contiene archivos de precomputación (`PoSC*`, `CCPoS*`), este flujo no cubre esa etapa.
 
 ## Error al compilar: "Package JSON not found"
 
@@ -320,23 +301,14 @@ julia --project=. JuliaBuild/build_portable_app.jl
 
 # Detalles adicionales
 
-## Extraer rho y bases con vmnv
+## Derivación nativa de rho y bases
 
-Comandos de ejemplo para generar `der.rho` y `bas.h` desde `protInfo.xml` y el directorio nizkp:
+El verificador deriva `der.rho` y `bas.h` directamente en Julia a partir de:
+- `protInfo.xml`
+- `dir/nizkp/<auxsid>/`
+- los archivos de prueba `PermutationCommitmentXX.bt`, `PoSCommitmentXX.bt` y `PoSReplyXX.bt`
 
-**Para modo mixing** (cuando el archivo `dir/nizkp/<auxsid>/type` contiene "mixing"):
-
-```bash
-/usr/local/bin/vmnv -mix -t der.rho,bas.h \
-    /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
-```
-
-**Para modo shuffling** (cuando el archivo `dir/nizkp/<auxsid>/type` contiene "shuffling"):
-
-```bash
-/usr/local/bin/vmnv -shuffle -t der.rho,bas.h \
-    /ruta/a/protInfo.xml /ruta/a/dir/nizkp/default
-```
+No hay que ejecutar `vmnv` manualmente para el flujo soportado por este repositorio.
 
 ## Archivos usados para la verificación
 

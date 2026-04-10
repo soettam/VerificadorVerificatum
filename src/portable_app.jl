@@ -2,8 +2,8 @@ module PortableApp
 import ..ShuffleProofs
 using JSON
 using Printf
-using Base: Cmd
 using Dates
+using ..VerificatumNative
 
 # Cargar módulos necesarios para verificación de firmas
 include(joinpath(@__DIR__, "signature_verifier.jl"))
@@ -36,20 +36,6 @@ function hexstring(bytes::AbstractVector{<:Unsigned})
         @printf(io, "%02x", b)
     end
     String(take!(io))
-end
-
-function parse_generators(payload::AbstractString, ::Type{G}) where G
-    matches = collect(eachmatch(r"\(([0-9a-fA-F]+),\s*([0-9a-fA-F]+)\)", payload))
-    isempty(matches) && return nothing
-
-    gens = Vector{G}(undef, length(matches))
-    for (i, m) in enumerate(matches)
-        x = parse(BigInt, m.captures[1], base = 16)
-        y = parse(BigInt, m.captures[2], base = 16)
-        gens[i] = G((x, y))
-    end
-
-    gens
 end
 
 function make_entry(lhs, rhs, expr, desc)
@@ -86,61 +72,6 @@ function default_resource_dir()
     isempty(candidates) ? nothing : first(candidates)
 end
 
-function find_vmnv_path()
-    if (path = Sys.which("vmnv")) !== nothing
-        return Cmd([path])
-    end
-
-    for candidate_root in resource_candidates()
-        candidate = joinpath(candidate_root, "verificatum-vmn-3.1.0", "bin", "vmnv")
-        isfile(candidate) && return Cmd([candidate])
-    end
-
-    candidate = joinpath(project_root(), "mixnet", "verificatum-vmn-3.1.0", "bin", "vmnv")
-    if isfile(candidate)
-        return Cmd([candidate])
-    end
-
-    if Sys.iswindows()
-        if (wsl = Sys.which("wsl")) !== nothing
-            try
-                vmnv_in_wsl = strip(read(`$wsl which vmnv`, String))
-                if !isempty(vmnv_in_wsl)
-                    return Cmd([wsl, "vmnv"])
-                end
-            catch err
-                err isa Base.ProcessFailedException || rethrow(err)
-            end
-        end
-    end
-
-    nothing
-end
-
-function windows_to_wsl_path(path::AbstractString, wsl::AbstractString)
-    startswith(path, "/") && return path
-    try
-        cmd = Cmd([wsl, "wslpath", "-a", String(path)])
-        converted = strip(read(pipeline(cmd; stderr=devnull), String))
-        if !isempty(converted)
-            return converted
-        end
-    catch err
-        err isa Base.ProcessFailedException || rethrow(err)
-    end
-
-    drive, rest = Base.Filesystem.splitdrive(path)
-    if isempty(drive)
-        return replace(String(path), "\\" => "/")
-    end
-
-    drive_letter = lowercase(string(first(drive)))
-    cleaned = replace(rest, "\\" => "/")
-    cleaned = lstrip(cleaned, '/')
-    cleaned = isempty(cleaned) ? "" : "/" * cleaned
-    "/mnt/" * drive_letter * cleaned
-end
-
 function default_dataset_path()
     for root in resource_candidates()
         candidate = joinpath(root, "validation_sample", "verificatum", "onpe3")
@@ -151,319 +82,9 @@ function default_dataset_path()
     isdir(candidate) ? candidate : nothing
 end
 
-function run_vmnv_testvectors(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle", auxsid::AbstractString = "default")
-    vmnv_cmd = vmnv_path isa Cmd ? vmnv_path : Cmd([String(vmnv_path)])
-    prot = joinpath(dataset, "protInfo.xml")
-    nizkp = joinpath(dataset, "dir", "nizkp", auxsid)
-
-    isfile(prot) || error("No se encontró protInfo.xml en $dataset")
-    isdir(nizkp) || error("No se encontró directorio nizkp en $dataset ($nizkp)")
-
-    prot_arg, nizkp_arg = prot, nizkp
-
-    # Normalizar y validar el modo
-    normalized_mode = lowercase(strip(mode))
-    if normalized_mode == "shuffle"; normalized_mode = "-shuffle"; end
-    if normalized_mode == "mix"; normalized_mode = "-mix"; end
-    if normalized_mode != "-shuffle" && normalized_mode != "-mix"
-        error("Modo inválido: '" * mode * "'. Use '-shuffle' o '-mix'.")
-    end
-    if Sys.iswindows() && !isempty(vmnv_cmd.exec)
-        if (wsl = Sys.which("wsl")) !== nothing && lowercase(vmnv_cmd.exec[1]) == lowercase(wsl)
-            prot_arg = windows_to_wsl_path(prot, wsl)
-            nizkp_arg = windows_to_wsl_path(nizkp, wsl)
-        end
-    end
-
-    cmd = if auxsid != "default"
-        `$vmnv_cmd $normalized_mode -auxsid $auxsid -t der.rho,bas.h $prot_arg $nizkp_arg`
-    else
-        `$vmnv_cmd $normalized_mode -t der.rho,bas.h $prot_arg $nizkp_arg`
-    end
-    # Capture both stdout and stderr: run the command and capture stderr into a buffer
-    buf = IOBuffer()
-    process = run(pipeline(ignorestatus(cmd), stdout=buf, stderr=buf))
-    output = String(take!(buf))
-    if process.exitcode != 0
-        println(stderr, "Error running vmnv: $output")
-        error("vmnv failed with exit code $(process.exitcode)")
-    end
-    output
-end
-
-function obtain_testvectors(dataset::AbstractString, ::Type{G}, vmnv_path; mode::AbstractString = "-shuffle", auxsid::AbstractString = "default") where {G}
-    output = run_vmnv_testvectors(dataset, vmnv_path; mode, auxsid)
-    # Eliminar secuencias ANSI que puedan aparecer en la salida del VM
-    output = replace(output, r"\x1B\[[0-?]*[ -/]*[@-~]" => "")
-    lines = split(output, '\n')
-
-    rho_hex = nothing
-    bas_payload = nothing
-
-    # Buscador robusto: cuando encontramos la etiqueta "der.rho" tomamos la
-    # siguiente línea no vacía que contenga sólo hex. Para bas.h recogemos
-    # varias líneas a partir de la siguiente hasta encontrar un separador
-    # (línea vacía) o una nueva etiqueta.
-    i = 1
-    while i <= length(lines)
-        line = lines[i]
-        if occursin("der.rho", line)
-            # intentar extraer hex en la misma línea primero
-            m = match(r"([0-9a-fA-F]{16,})", line)
-            if m !== nothing
-                rho_hex = m.captures[1]
-            else
-                # buscar la siguiente línea no vacía que contenga hex
-                j = i + 1
-                while j <= length(lines)
-                    candidate = strip(lines[j])
-                    # aceptar también tokens separados por espacios (unirlos)
-                    token = replace(candidate, r"\s+" => "")
-                    if !isempty(token) && occursin(r"^[0-9a-fA-F]+$", token)
-                        rho_hex = token
-                        break
-                    end
-                    j += 1
-                end
-            end
-            i = i + 1
-            continue
-        elseif occursin("bas.h", line)
-            # recolectar payload para bas.h: todas las líneas no vacías
-            # hasta una línea vacía o una nueva etiqueta que contenga '.' o '-'
-            j = i + 1
-            parts = String[]
-            while j <= length(lines)
-                candidate = lines[j]
-                s = strip(replace(candidate, r"\x1B\[[0-?]*[ -/]*[@-~]" => ""))
-                if isempty(s)
-                    break
-                end
-                # detener si aparece otra etiqueta de tipo "der.rho" o "TEST VECTOR" o nueva bas.h
-                if occursin("der.rho", s) || occursin("TEST VECTOR", s) || occursin("bas.h", s)
-                    break
-                end
-                push!(parts, s)
-                j += 1
-            end
-            bas_payload = join(parts, " ")
-            i = j
-            continue
-        end
-        i += 1
-    end
-
-    if isnothing(rho_hex)
-        # Guardar volcado crudo para depuración
-        logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
-        try
-            mkpath(logdir)
-            logfile = joinpath(logdir, "vmnv_raw_output_global.log")
-            open(logfile, "w") do io
-                write(io, output)
-            end
-        catch e
-            @warn "No se pudo escribir vmnv raw log: $e"
-            logfile = "(error al escribir log)"
-        end
-        error("No se pudo extraer der.rho del resultado de vmnv. Volcado guardado en: $logfile")
-    end
-    if isnothing(bas_payload)
-        logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
-        try
-            mkpath(logdir)
-            logfile = joinpath(logdir, "vmnv_raw_output_global.log")
-            open(logfile, "w") do io
-                write(io, output)
-            end
-        catch e
-            @warn "No se pudo escribir vmnv raw log: $e"
-            logfile = "(error al escribir log)"
-        end
-        error("No se pudo extraer bas.h del resultado de vmnv. Volcado guardado en: $logfile")
-    end
-
-    ρ = UInt8[parse(UInt8, rho_hex[i:i+1], base = 16) for i in 1:2:length(rho_hex)]
-    generators = parse_generators(bas_payload, G)
-    isnothing(generators) && error("No se pudieron parsear los generadores bas.h")
-
-    (; ρ, generators)
-end
-
-function obtain_testvectors_for_party(dataset::AbstractString, ::Type{G}, vmnv_path, party_id::Int) where {G}
-    """
-    Extrae los generadores específicos de una party creando un directorio temporal
-    con la estructura que vmnv espera para -shuffle.
-    """
-    vmnv_cmd = vmnv_path isa Cmd ? vmnv_path : Cmd([String(vmnv_path)])
-    prot = joinpath(dataset, "protInfo.xml")
-    proofs_dir = joinpath(dataset, "dir", "nizkp", "default", "proofs")
-    base_nizkp = joinpath(dataset, "dir", "nizkp", "default")
-    
-    party_suffix = @sprintf("%02d", party_id)
-    
-    # Verificar que existen los archivos de esta party
-    perm_commitment = joinpath(proofs_dir, "PermutationCommitment$(party_suffix).bt")
-    pos_commitment = joinpath(proofs_dir, "PoSCommitment$(party_suffix).bt")
-    pos_reply = joinpath(proofs_dir, "PoSReply$(party_suffix).bt")
-    
-    isfile(prot) || error("No se encontró protInfo.xml en $dataset")
-    isfile(perm_commitment) || error("No se encontró PermutationCommitment$(party_suffix).bt para party $party_id")
-    isfile(pos_commitment) || error("No se encontró PoSCommitment$(party_suffix).bt para party $party_id")
-    isfile(pos_reply) || error("No se encontró PoSReply$(party_suffix).bt para party $party_id")
-    
-    # Crear directorio temporal con estructura válida para vmnv
-    temp_dir = mktempdir(; cleanup=true)
-    temp_nizkp = joinpath(temp_dir, "nizkp", "default")
-    temp_proofs = joinpath(temp_nizkp, "proofs")
-    mkpath(temp_proofs)
-    
-    try
-        # Copiar archivos necesarios de esta party renombrándolos sin sufijo
-        cp(perm_commitment, joinpath(temp_proofs, "PermutationCommitment.bt"))
-        cp(pos_commitment, joinpath(temp_proofs, "PoSCommitment.bt"))
-        cp(pos_reply, joinpath(temp_proofs, "PoSReply.bt"))
-        
-        # Copiar archivos de configuración del dataset original
-        for file in ["version", "auxsid", "width"]
-            src = joinpath(base_nizkp, file)
-            if isfile(src)
-                cp(src, joinpath(temp_nizkp, file))
-            end
-        end
-        
-        # Copiar archivos comunes necesarios
-        for file in ["FullPublicKey.bt", "ShuffledCiphertexts.bt"]
-            src = joinpath(base_nizkp, file)
-            if isfile(src)
-                cp(src, joinpath(temp_nizkp, file))
-            end
-        end
-        
-        # Escribir type="shuffling" para que vmnv acepte -shuffle
-        write(joinpath(temp_nizkp, "type"), "shuffling")
-        
-        # Copiar ciphertexts de esta party si existen
-        ciphertexts_src = joinpath(proofs_dir, "Ciphertexts$(party_suffix).bt")
-        if isfile(ciphertexts_src)
-            cp(ciphertexts_src, joinpath(temp_nizkp, "Ciphertexts.bt"))
-        else
-            # Si no hay ciphertexts por party, usar los del dataset base
-            ciphertexts_base = joinpath(base_nizkp, "Ciphertexts.bt")
-            if isfile(ciphertexts_base)
-                cp(ciphertexts_base, joinpath(temp_nizkp, "Ciphertexts.bt"))
-            end
-        end
-        
-        # Escribir activethreshold=1 para que vmnv lo trate como single-party
-        write(joinpath(temp_proofs, "activethreshold"), "1")
-        
-        prot_arg = prot
-        nizkp_arg = temp_nizkp
-        
-        if Sys.iswindows() && !isempty(vmnv_cmd.exec)
-            if (wsl = Sys.which("wsl")) !== nothing && lowercase(vmnv_cmd.exec[1]) == lowercase(wsl)
-                prot_arg = windows_to_wsl_path(prot, wsl)
-                nizkp_arg = windows_to_wsl_path(temp_nizkp, wsl)
-            end
-        end
-        
-    # Extraer con vmnv -shuffle del directorio temporal
-    cmd = `$vmnv_cmd -shuffle -t der.rho,bas.h $prot_arg $nizkp_arg`
-    buf = IOBuffer()
-    run(pipeline(cmd, stdout=buf, stderr=buf))
-    output = String(take!(buf))
-    output = replace(output, r"\\x1B\\[[0-?]*[ -/]*[@-~]" => "")
-    lines = split(output, '\n')
-        
-        rho_hex = nothing
-        bas_payload = nothing
-
-        # Parsing robusto similar a obtain_testvectors: der.rho es la siguiente
-        # línea hex no vacía; bas.h puede ocupar varias líneas que unimos.
-        i = 1
-        while i <= length(lines)
-            line = lines[i]
-            if occursin("der.rho", line)
-                # intentar extraer hex en la misma línea
-                m = match(r"([0-9a-fA-F]{16,})", line)
-                if m !== nothing
-                    rho_hex = m.captures[1]
-                else
-                    j = i + 1
-                    while j <= length(lines)
-                        candidate = strip(lines[j])
-                        token = replace(candidate, r"\s+" => "")
-                        if !isempty(token) && occursin(r"^[0-9a-fA-F]+$", token)
-                            rho_hex = token
-                            break
-                        end
-                        j += 1
-                    end
-                end
-                i = i + 1
-                continue
-            elseif occursin("bas.h", line)
-                j = i + 1
-                parts = String[]
-                while j <= length(lines)
-                    candidate = lines[j]
-                    s = strip(replace(candidate, r"\x1B\[[0-?]*[ -/]*[@-~]" => ""))
-                    if isempty(s)
-                        break
-                    end
-                    if occursin("der.rho", s) || occursin("TEST VECTOR", s) || occursin("bas.h", s)
-                        break
-                    end
-                    push!(parts, s)
-                    j += 1
-                end
-                bas_payload = join(parts, " ")
-                i = j
-                continue
-            end
-            i += 1
-        end
-        
-        if isnothing(rho_hex)
-            logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
-            try
-                mkpath(logdir)
-                logfile = joinpath(logdir, "vmnv_raw_output_party_$(party_suffix).log")
-                open(logfile, "w") do io
-                    write(io, output)
-                end
-            catch e
-                @warn "No se pudo escribir vmnv raw log para party $party_id: $e"
-                logfile = "(error al escribir log)"
-            end
-            error("No se pudo extraer der.rho para party $party_id. Volcado guardado en: $logfile")
-        end
-        if isnothing(bas_payload)
-            logdir = joinpath(dataset, "dir", "nizkp", "tmp_logs")
-            try
-                mkpath(logdir)
-                logfile = joinpath(logdir, "vmnv_raw_output_party_$(party_suffix).log")
-                open(logfile, "w") do io
-                    write(io, output)
-                end
-            catch e
-                @warn "No se pudo escribir vmnv raw log para party $party_id: $e"
-                logfile = "(error al escribir log)"
-            end
-            error("No se pudo extraer bas.h para party $party_id. Volcado guardado en: $logfile")
-        end
-        
-        ρ = UInt8[parse(UInt8, rho_hex[i:i+1], base = 16) for i in 1:2:length(rho_hex)]
-        generators = parse_generators(bas_payload, G)
-        isnothing(generators) && error("No se pudieron parsear los generadores para party $party_id")
-        
-        return (; ρ, generators)
-        
-    finally
-        # Limpiar directorio temporal
-        rm(temp_dir; recursive=true, force=true)
-    end
+function obtain_testvectors(dataset::AbstractString, proposition; auxsid::AbstractString = "default")
+    count = length(proposition.𝐞)
+    VerificatumNative.derive_testvectors(dataset, proposition.g, count; auxsid)
 end
 
 function compute_shuffle_checks(proposition, proof, challenge)
@@ -614,7 +235,7 @@ function variable_definitions()
     )
 end
 
-function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractString = "-shuffle", auxsid::AbstractString = "default")
+function detailed_chequeo(dataset::AbstractString; mode::AbstractString = "-shuffle", auxsid::AbstractString = "default")
     isdir(dataset) || error("Dataset no existe: $dataset")
 
     # Auto-detectar tipo de prueba y número de parties
@@ -635,7 +256,7 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
     # Si es multi-party, delegar a la función especializada
     if num_parties > 1
         @info "Detectado dataset multi-party con $num_parties parties. Verificando cada party..."
-        return detailed_chequeo_multiparty(dataset, vmnv_path, num_parties; auxsid=auxsid)
+        return detailed_chequeo_multiparty(dataset, num_parties; auxsid=auxsid)
     end
     
     # Código original para single-party
@@ -650,7 +271,7 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
     proof = ShuffleProofs.PoSProof(vproof)
     verifier = sim.verifier
 
-    testvectors = obtain_testvectors(dataset, typeof(proposition.g), vmnv_path; mode, auxsid)
+    testvectors = obtain_testvectors(dataset, proposition; auxsid)
     ρ = testvectors.ρ
     generators = testvectors.generators
 
@@ -681,7 +302,8 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
             "rho_hex" => hexstring(ρ),
             "seed_hex" => hexstring(seed),
             "generators" => string.(generators),
-            "vmnv_mode" => mode
+            "verification_mode" => mode,
+            "derivation_backend" => "julia-native"
         ),
         "challenges" => Dict(
             "perm_vector" => map(string, perm_u),
@@ -705,21 +327,21 @@ function detailed_chequeo(dataset::AbstractString, vmnv_path; mode::AbstractStri
     )
 end
 
-function detailed_chequeo_multiparty(dataset::AbstractString, vmnv_path, num_parties::Int; auxsid::AbstractString="default")
+function detailed_chequeo_multiparty(dataset::AbstractString, num_parties::Int; auxsid::AbstractString="default")
     """
     Verifica un dataset multi-party, procesando cada party independientemente.
     En multi-party mixing, TODAS las parties comparten los mismos generadores globales,
     pero cada party tiene sus propios input/output ciphertexts.
     """
     
-    # Extraer generadores GLOBALES con vmnv -mix (compartidos por todas las parties)
-    @info "Extrayendo generadores globales con vmnv -mix..."
+    # Los generadores de mixing son globales para todas las parties.
+    @info "Derivando generadores globales con Julia..."
     sim = ShuffleProofs.load_verificatum_simulator(dataset; auxsid=auxsid)
     base_g = sim.proposition.g
     base_pk = sim.proposition.pk
     verifier = sim.verifier
     
-    testvectors_global = obtain_testvectors(dataset, typeof(base_g), vmnv_path; mode = "-mix", auxsid=auxsid)
+    testvectors_global = VerificatumNative.derive_testvectors(dataset, base_g, length(sim.proposition.𝐞); auxsid)
     ρ_global = testvectors_global.ρ
     generators_global = testvectors_global.generators
     
@@ -890,12 +512,6 @@ function cli_run(args::Vector{String})::Cint
         return 1
     end
 
-    vmnv_path = find_vmnv_path()
-    if vmnv_path === nothing
-        println(stderr, "No se encontró 'vmnv'. Instale Verificatum o copie mixnet/verificatum-vmn-3.1.0 en resources.")
-        return 1
-    end
-
     # Validación básica del modo para dar feedback temprano en CLI
     begin
         nm = lowercase(strip(mode_arg))
@@ -907,7 +523,7 @@ function cli_run(args::Vector{String})::Cint
         end
     end
 
-    result = detailed_chequeo(dataset_path, vmnv_path; mode = mode_arg, auxsid = auxsid_arg)
+    result = detailed_chequeo(dataset_path; mode = mode_arg, auxsid = auxsid_arg)
 
     println("Dataset: ", result["dataset"])
     println("Session ID: ", auxsid_arg)
@@ -983,7 +599,8 @@ function cli_run(args::Vector{String})::Cint
             println("  u[$i] = ", u)
         end
         println("Reencryption challenge (c): ", result["challenges"]["reenc"])
-        println("vmnv mode: ", result["parameters"]["vmnv_mode"])
+        println("Modo de verificación: ", result["parameters"]["verification_mode"])
+        println("Backend de derivación: ", result["parameters"]["derivation_backend"])
 
         println("\nChequeos de nivel shuffle:")
         print_checks(result["checks"]["shuffle"])
