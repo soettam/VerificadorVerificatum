@@ -45,6 +45,7 @@ end
 clean_requested = any(arg -> arg in ("--clean", "-c"), ARGS) || get(ENV, "SHUFFLEPROOFS_CLEAN", "0") == "1"
 has_previous_build = isdir(joinpath(app_dir, "bin"))
 incremental_build = has_previous_build && !clean_requested
+force_recreate_app = incremental_build
 
 if clean_requested && isdir(app_dir)
     println("[build] Limpiando build anterior en $app_dir")
@@ -53,6 +54,11 @@ if clean_requested && isdir(app_dir)
     incremental_build = false
 end
 isdir(app_dir) && clear_readonly!(app_dir)
+
+# En builds limpios sobre Windows, PackageCompiler puede intentar enlazar
+# sys.dll antes de recrear toda la jerarquía destino.
+mkpath(joinpath(app_dir, "bin"))
+mkpath(joinpath(app_dir, "lib", "julia"))
 
 println("[build] Modo incremental: $(incremental_build)")
 
@@ -67,7 +73,7 @@ create_app(
     ],
     precompile_execution_file = precompile_script,
     include_lazy_artifacts = true,
-    force = true,
+    force = force_recreate_app,
     incremental = incremental_build
 )
 
