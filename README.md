@@ -1,6 +1,37 @@
-# Verificación Criptográfica - ShuffleProofs para Verificatum
+# 🗳️ Verificador Verificatum (ShuffleProofs) en Julia
 
-Este documento describe en detalle qué verifica el software, la estructura de datos requerida y las referencias técnicas del verificador.
+[![Julia](https://img.shields.io/badge/Julia-1.11+-9558B2?style=flat&logo=julia&logoColor=white)](https://julialang.org)
+[![Criptografía](https://img.shields.io/badge/Criptografía-Zero--Knowledge%20Proofs-blue)](#)
+[![Arquitectura](https://img.shields.io/badge/Arquitectura-Portable%20CLI-success)](#)
+
+Una herramienta de alto rendimiento desarrollada en **Julia** para auditar de principio a fin sistemas de voto electrónico basados en mix-nets (como **Verificatum**). Permite verificar matemáticamente que los votos no han sido manipulados y auditar las firmas digitales, sin depender de la infraestructura Java original de Verificatum.
+
+Este proyecto destaca por reconstruir y verificar **nativamente** las pruebas criptográficas (*Zero-Knowledge Proofs* o Pruebas de Conocimiento Cero) publicadas en el Bulletin Board de una elección.
+
+## ✨ Características Técnicas Destacadas
+
+- 🚀 **Rendimiento Nativo (LLVM):** Velocidad comparable a C/C++ gracias a la compilación nativa de Julia, manteniendo una sintaxis limpia.
+- 🔐 **Verificación de Conocimiento Cero (ZKP):** Comprobación matemática rigurosa de las permutaciones y propiedades de re-encriptación homomórfica de los votos.
+- 📦 **Binarios Portables:** Generación de aplicaciones portables e independientes (CLI) para Windows y Linux (usando `PackageCompiler`).
+- 🌳 **Parser Binario a Medida:** Implementación nativa del formato recursivo propietario **ByteTree** de Verificatum.
+- 🛡️ **Validación RSA Rigurosa:** Verificación de firmas RSA-2048 con estructura específica de doble hashing SHA-256 sobre árboles deserializados, superando las limitaciones de herramientas estándar como OpenSSL.
+
+## 🚀 Uso Rápido (Quick Start)
+Hay ejecutables portables disponibles que no requieren instalar Julia. El sistema cuenta con dos verificadores principales:
+```bash
+# 1. Verificar la integridad y anonimato del Shuffle (barajado de votos)
+./verificador ./ruta_al_dataset
+
+# 2. Verificar las firmas digitales de los archivos de la elección
+./verificar_firmas ./ruta_al_dataset
+```
+*(Consulta las guías detalladas para [Linux](README_UBUNTU.md) y [Windows](README_WINDOWS.md)).*
+
+---
+
+# 🧠 Arquitectura Criptográfica: Qué verifica este software
+
+Este documento describe además en detalle qué verifica matemáticamente el software, la estructura de datos requerida y las referencias técnicas.
 
 Nota operativa: la verificación de shuffle derivada por este proyecto ya no depende de `vmn` o `vmnv`. Los valores `der.rho` y `bas.h` se reconstruyen nativamente en Julia a partir del dataset.
 
